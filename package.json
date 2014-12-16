@@ -1,5 +1,5 @@
 {
-    "name": "Brackets",
+    "name": "node-brackets",
     "version": "0.45.0-0",
     "apiVersion": "0.45.0",
     "homepage": "http://brackets.io",
@@ -50,8 +50,7 @@
         "xmldoc": "^0.1.2"
     },
     "scripts": {
-        "postinstall": "grunt install",
-        "test": "grunt cla-check-pull test"
+        "postinstall": "grunt install"
     },
     "licenses": [
         {
