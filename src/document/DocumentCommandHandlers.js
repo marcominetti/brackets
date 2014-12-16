@@ -1654,14 +1654,14 @@ define(function (require, exports, module) {
     exports._parseDecoratedPath = _parseDecoratedPath;
 
     // Set some command strings
-    var quitString  = Strings.CMD_QUIT,
+    var quitString  = Strings.CMD_QUIT /*,
         showInOS    = Strings.CMD_SHOW_IN_OS;
     if (brackets.platform === "win") {
         quitString  = Strings.CMD_EXIT;
         showInOS    = Strings.CMD_SHOW_IN_EXPLORER;
     } else if (brackets.platform === "mac") {
         showInOS    = Strings.CMD_SHOW_IN_FINDER;
-    }
+    }*/
 
     // Deprecated commands
     CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET,          Commands.FILE_ADD_TO_WORKING_SET,        handleFileAddToWorkingSet);
@@ -1691,7 +1691,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_PREV_DOC,                    Commands.NAVIGATE_PREV_DOC,              handleGoPrevDoc);
 
     // Special Commands
-    CommandManager.register(showInOS,                                Commands.NAVIGATE_SHOW_IN_OS,            handleShowInOS);
+    //CommandManager.register(showInOS,                                Commands.NAVIGATE_SHOW_IN_OS,            handleShowInOS);
     CommandManager.register(quitString,                              Commands.FILE_QUIT,                      handleFileQuit);
     CommandManager.register(Strings.CMD_SHOW_IN_TREE,                Commands.NAVIGATE_SHOW_IN_FILE_TREE,     handleShowInTree);
 

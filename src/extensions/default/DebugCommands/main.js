@@ -156,7 +156,7 @@ define(function (require, exports, module) {
     
     function handleSwitchLanguage() {
         var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
-        
+
         FileSystem.getDirectoryForPath(stringsPath).getContents(function (err, entries) {
             if (!err) {
                 var $dialog,
@@ -261,29 +261,29 @@ define(function (require, exports, module) {
     /* Register all the command handlers */
     
     // Show Developer Tools (optionally enabled)
-    CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,             DEBUG_SHOW_DEVELOPER_TOOLS,     handleShowDeveloperTools)
-        .setEnabled(!!brackets.app.showDeveloperTools);
+    //CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,             DEBUG_SHOW_DEVELOPER_TOOLS,     handleShowDeveloperTools)
+      //  .setEnabled(!!brackets.app.showDeveloperTools);
     CommandManager.register(Strings.CMD_REFRESH_WINDOW,             DEBUG_REFRESH_WINDOW,           handleReload);
-    CommandManager.register(Strings.CMD_RELOAD_WITHOUT_USER_EXTS,   DEBUG_RELOAD_WITHOUT_USER_EXTS, handleReloadWithoutUserExts);
+    //CommandManager.register(Strings.CMD_RELOAD_WITHOUT_USER_EXTS,   DEBUG_RELOAD_WITHOUT_USER_EXTS, handleReloadWithoutUserExts);
     CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW,        DEBUG_NEW_BRACKETS_WINDOW,      handleNewBracketsWindow);
     
     // Start with the "Run Tests" item disabled. It will be enabled later if the test file can be found.
-    CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,       DEBUG_RUN_UNIT_TESTS,         _runUnitTests)
-        .setEnabled(false);
+    //CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,       DEBUG_RUN_UNIT_TESTS,         _runUnitTests)
+    //    .setEnabled(false);
     
-    CommandManager.register(Strings.CMD_SHOW_PERF_DATA,            DEBUG_SHOW_PERF_DATA,            handleShowPerfData);
+    //CommandManager.register(Strings.CMD_SHOW_PERF_DATA,            DEBUG_SHOW_PERF_DATA,            handleShowPerfData);
 
     // Open Brackets Source (optionally enabled)
-    CommandManager.register(Strings.CMD_OPEN_BRACKETS_SOURCE,      DEBUG_OPEN_BRACKETS_SOURCE,      handleOpenBracketsSource)
-        .setEnabled(!StringUtils.endsWith(decodeURI(window.location.pathname), "/www/index.html"));
+    //CommandManager.register(Strings.CMD_OPEN_BRACKETS_SOURCE,      DEBUG_OPEN_BRACKETS_SOURCE,      handleOpenBracketsSource)
+      //  .setEnabled(!StringUtils.endsWith(decodeURI(window.location.pathname), "/www/index.html"));
 
     CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,           DEBUG_SWITCH_LANGUAGE,           handleSwitchLanguage);
     CommandManager.register(Strings.CMD_SHOW_ERRORS_IN_STATUS_BAR, DEBUG_SHOW_ERRORS_IN_STATUS_BAR, toggleErrorNotification);
     
     // Node-related Commands
-    CommandManager.register(Strings.CMD_ENABLE_NODE_DEBUGGER, DEBUG_ENABLE_NODE_DEBUGGER,   NodeDebugUtils.enableDebugger);
-    CommandManager.register(Strings.CMD_LOG_NODE_STATE,       DEBUG_LOG_NODE_STATE,         NodeDebugUtils.logNodeState);
-    CommandManager.register(Strings.CMD_RESTART_NODE,         DEBUG_RESTART_NODE,           NodeDebugUtils.restartNode);
+    //CommandManager.register(Strings.CMD_ENABLE_NODE_DEBUGGER, DEBUG_ENABLE_NODE_DEBUGGER,   NodeDebugUtils.enableDebugger);
+    //CommandManager.register(Strings.CMD_LOG_NODE_STATE,       DEBUG_LOG_NODE_STATE,         NodeDebugUtils.logNodeState);
+    //CommandManager.register(Strings.CMD_RESTART_NODE,         DEBUG_RESTART_NODE,           NodeDebugUtils.restartNode);
     
     enableRunTestsMenuItem();
     toggleErrorNotification(PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR));
@@ -292,20 +292,20 @@ define(function (require, exports, module) {
      * Debug menu
      */
     var menu = Menus.addMenu(Strings.DEBUG_MENU, DEBUG_MENU, Menus.BEFORE, Menus.AppMenuBar.HELP_MENU);
-    menu.addMenuItem(DEBUG_SHOW_DEVELOPER_TOOLS, KeyboardPrefs.showDeveloperTools);
+    //menu.addMenuItem(DEBUG_SHOW_DEVELOPER_TOOLS, KeyboardPrefs.showDeveloperTools);
     menu.addMenuItem(DEBUG_REFRESH_WINDOW, KeyboardPrefs.refreshWindow);
-    menu.addMenuItem(DEBUG_RELOAD_WITHOUT_USER_EXTS, KeyboardPrefs.reloadWithoutUserExts);
+    //menu.addMenuItem(DEBUG_RELOAD_WITHOUT_USER_EXTS, KeyboardPrefs.reloadWithoutUserExts);
     menu.addMenuItem(DEBUG_NEW_BRACKETS_WINDOW);
     menu.addMenuDivider();
     menu.addMenuItem(DEBUG_SWITCH_LANGUAGE);
+    //menu.addMenuDivider();
+    //menu.addMenuItem(DEBUG_RUN_UNIT_TESTS);
+    //menu.addMenuItem(DEBUG_SHOW_PERF_DATA);
+    //menu.addMenuItem(DEBUG_OPEN_BRACKETS_SOURCE);
     menu.addMenuDivider();
-    menu.addMenuItem(DEBUG_RUN_UNIT_TESTS);
-    menu.addMenuItem(DEBUG_SHOW_PERF_DATA);
-    menu.addMenuItem(DEBUG_OPEN_BRACKETS_SOURCE);
-    menu.addMenuDivider();
-    menu.addMenuItem(DEBUG_ENABLE_NODE_DEBUGGER);
-    menu.addMenuItem(DEBUG_LOG_NODE_STATE);
-    menu.addMenuItem(DEBUG_RESTART_NODE);
+    //menu.addMenuItem(DEBUG_ENABLE_NODE_DEBUGGER);
+    //menu.addMenuItem(DEBUG_LOG_NODE_STATE);
+    //menu.addMenuItem(DEBUG_RESTART_NODE);
     menu.addMenuItem(DEBUG_SHOW_ERRORS_IN_STATUS_BAR);
     menu.addMenuItem(Commands.FILE_OPEN_PREFERENCES); // this command is defined in core, but exposed only in Debug menu for now
     

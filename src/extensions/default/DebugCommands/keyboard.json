@@ -1,13 +1,4 @@
 {
-    "showDeveloperTools":  [
-        {
-            "key": "F12"
-        },
-        {
-            "key": "Cmd-Opt-I",
-            "platform": "mac"
-        }
-    ],
     "refreshWindow":  [
         {
             "key": "F5"
@@ -15,11 +6,6 @@
         {
             "key": "Cmd-R",
             "platform": "mac"
-        }
-    ],
-    "reloadWithoutUserExts":  [
-        {
-            "key": "Shift-F5"
         }
     ]
 }
