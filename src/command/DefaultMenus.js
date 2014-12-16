@@ -57,9 +57,10 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.FILE_PROJECT_SETTINGS);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_EXTENSION_MANAGER);
-        
+
+        // HACK: Browser window cannot be closed from script.
         // suppress redundant quit menu item on mac
-        if (brackets.platform !== "mac" || !brackets.nativeMenus) {
+        if (false) {
             menu.addMenuDivider();
             menu.addMenuItem(Commands.FILE_QUIT);
         }
@@ -185,8 +186,9 @@ define(function (require, exports, module) {
             menu.addMenuItem(Commands.HELP_GET_INVOLVED);
         }
 
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.HELP_SHOW_EXT_FOLDER);
+        // HACK: Hiding open extension folder menu item
+        //menu.addMenuDivider();
+        //menu.addMenuItem(Commands.HELP_SHOW_EXT_FOLDER);
 
 
         var hasAboutItem = (brackets.platform !== "mac" || !brackets.nativeMenus);

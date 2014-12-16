@@ -108,7 +108,14 @@ define(function (require, exports, module) {
     
     // Create empty app namespace if running in-browser
     if (!global.brackets.app) {
-        global.brackets.app = {};
+        // HACK: 1. We have to mock shell app.
+        // HACK: 2. Brackets inBrowser behaves very differently, that's why we have to fake it.
+        // HACK: 3. We need the menus in the Browser.
+        // HACK: 4/5. Brackets extension registry services don't allow CORS, that's why we have to proxy the requests.
+        global.brackets.app=require("hacks/app");
+        global.brackets.inBrowser=false;
+        global.brackets.nativeMenus=false;
+        global.brackets.fs=require("hacks/low-level-fs");
     }
     
     // Loading extensions requires creating new require.js contexts, which

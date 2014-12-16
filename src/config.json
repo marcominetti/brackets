@@ -22,8 +22,8 @@
         "build_timestamp": ""
     },
     "name": "Brackets",
-    "version": "0.44.0-0",
-    "apiVersion": "0.44.0",
+    "version": "0.45.0-0",
+    "apiVersion": "0.45.0",
     "homepage": "http://brackets.io",
     "issues": {
         "url": "http://github.com/adobe/brackets/issues"
@@ -33,6 +33,16 @@
         "url": "https://github.com/adobe/brackets.git",
         "branch": "",
         "SHA": ""
+    },
+    "dependencies": {
+        "send": "^0.9.3",
+        "mkdirp": "^0.5.0",
+        "rimraf": "^2.2.8",
+        "ncp": "^1.0.0",
+        "commander": "^2.3.0",
+        "open": "^0.0.5",
+        "socket.io-client": "^1.1.0",
+        "glob": "^4.0.6"
     },
     "devDependencies": {
         "grunt": "0.4.1",
