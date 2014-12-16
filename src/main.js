@@ -35,7 +35,7 @@ require.config({
         
         // The file system implementation. Change this value to use different 
         // implementations (e.g. cloud-based storage).
-        "fileSystemImpl"    : "extensions/default/client-fs/main"
+        "fileSystemImpl"    : "extensions/default/client-fs/lib/file-system"
     }
 });
 

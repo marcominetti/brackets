@@ -6,21 +6,21 @@ define(function (require, exports, module) {
         Menus               = brackets.getModule("command/Menus"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         fsImpl              = brackets.getModule("fileSystemImpl"),
-        Strings             = require("extensions/default/client-fs/strings"),
+        Strings             = require("./strings"),
         OPEN_CMD_ID         = "remoteFS.open",
         OPEN_FLDR_CMD_ID    = "remoteFS.openFolder",
         SAVE_AS_CMD_ID      = "remoteFS.saveAs";
 
-    ExtensionUtils.loadStyleSheet(module, "extensions/default/client-fs/styles/dialog.less");
+    ExtensionUtils.loadStyleSheet(module, "./styles/dialog.less");
 
     if (fsImpl._setDialogs) {
         // This means we are running in hosted Brackets and remote-fs is already bound.
         // We still have to set the dialogs.
-        fsImpl._setDialogs(require("extensions/default/client-fs/lib/open-dialog"), require("extensions/default/client-fs/lib/save-dialog"));
+        fsImpl._setDialogs(require("./lib/open-dialog"), require("./lib/save-dialog"));
     } else {
         // We are running on native OS shell.
         var FileSystem  = brackets.getModule("filesystem/FileSystem"),
-            wrapper     = require("extensions/default/client-fs/lib/fs-wrapper"),
+            wrapper     = require("./lib/fs-wrapper"),
             menu        = Menus.getMenu(Menus.AppMenuBar.FILE_MENU),
             handler     = function () {};
 

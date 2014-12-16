@@ -1,8 +1,8 @@
 define(function (require, exports) {
     "use strict";
 
-    var FileSystemStats     = require("filesystem/FileSystemStats"),
-        FileSystemError     = require("filesystem/FileSystemError"),
+    var FileSystemStats     = require("filesystem/FileSystemStats.js"),
+        FileSystemError     = require("filesystem/FileSystemError.js"),
         OpenDialog          = {},
         SaveDialog          = {},
         io                  = require("hacks/socket.io.js");
