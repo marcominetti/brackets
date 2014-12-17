@@ -8,3 +8,7 @@ tools
 .travis.yml
 CONTRIBUTING.md
 Gruntfile.js
+.gitattributes
+.gitmodules
+.npmignore
+.idea
