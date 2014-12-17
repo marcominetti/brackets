@@ -5,7 +5,7 @@ define(function (require, exports) {
         FileSystemError     = require("filesystem/FileSystemError.js"),
         OpenDialog          = {},
         SaveDialog          = {},
-        io                  = require("hacks/socket.io.js");
+        io                  = require("thirdparty/socket.io.js");
 
     /**
      * Callback to notify FileSystem of watcher changes

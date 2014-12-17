@@ -59,7 +59,7 @@ module.exports = function (grunt) {
                             'xorigin.js',
                             'dependencies.js',
                             'thirdparty/requirejs/require.js',
-                            'LiveDevelopment/launch.html'
+                            '!LiveDevelopment/launch.html'
                         ]
                     },
                     /* node domains are not minified and must be copied to dist */
@@ -70,8 +70,8 @@ module.exports = function (grunt) {
                         src: [
                             'extensibility/node/**',
                             '!extensibility/node/spec/**',
-                            'filesystem/impls/appshell/node/**',
-                            '!filesystem/impls/appshell/node/spec/**'
+                            'filesystem/FileSystemError.js',
+                            'filesystem/FileSystemStats.js'
                         ]
                     },
                     /* extensions and CodeMirror modes */
@@ -91,7 +91,8 @@ module.exports = function (grunt) {
                             'thirdparty/CodeMirror2/mode/{,*/}*',
                             'thirdparty/CodeMirror2/theme/{,*/}*',
                             'thirdparty/i18n/*.js',
-                            'thirdparty/text/*.js'
+                            'thirdparty/text/*.js',
+                            'thirdparty/socket.io.js'
                         ]
                     },
                     /* styles, fonts and images */
@@ -140,7 +141,7 @@ module.exports = function (grunt) {
                     // Disable closure, we want define/require to be globals
                     wrap: false,
                     exclude: ["text!config.json"],
-                    uglify2: {} // https://github.com/mishoo/UglifyJS2
+                    uglify2: {} // https://github.com/mishoo/UglifyJS2,
                 }
             }
         },

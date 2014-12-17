@@ -84,7 +84,7 @@ define(function (require, exports, module) {
             if (!err && nodePort && deferred.state() !== "rejected") {
                 port = nodePort;
                 //ws = new WebSocket("ws://" + window.location.host + "/brackets-ext");
-                ws = require("../hacks/socket.io").connect("/brackets-ext");
+                ws = require("../thirdparty/socket.io").connect("/brackets-ext");
                 if (ws.connected) {
                     deferred.resolveWith(null, [ws, port]);
                 } else {
