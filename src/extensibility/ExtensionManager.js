@@ -52,7 +52,7 @@ define(function (require, exports, module) {
         ThemeManager        = require("view/ThemeManager");
 
     // semver.browser is an AMD-compatible module
-    var semver = require("extensibility/node/node_modules/semver/semver.browser");
+    var semver = require("extensibility/node/semver/semver.browser.js");
 
     /**
      * @private

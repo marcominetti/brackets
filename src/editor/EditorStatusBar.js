@@ -406,7 +406,8 @@ define(function (require, exports, module) {
     AppInit.appReady(function () {
         // Populate language switcher with all languages after startup; update it later if this set changes
         _populateLanguageDropdown();
-        $(LanguageManager).on("languageAdded languageModified", _populateLanguageDropdown);
+        // HACK: For some reason this line causes languageDropdown to be populated before it si initialized. Needs more investigaton.
+        //$(LanguageManager).on("languageAdded languageModified", _populateLanguageDropdown);
         _onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
         StatusBar.show();
     });

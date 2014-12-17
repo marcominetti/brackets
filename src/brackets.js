@@ -218,8 +218,9 @@ define(function (require, exports, module) {
     function _onReady() {
         PerfUtils.addMeasurement("window.document Ready");
 
+        // HACK: Remove warning dialog about Brackets not been ready for browsers.
         // Let the user know Brackets doesn't run in a web browser yet
-        if (brackets.inBrowser) {
+        if (false) {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
                 Strings.ERROR_IN_BROWSER_TITLE,
@@ -314,7 +315,7 @@ define(function (require, exports, module) {
         });
         
         // Check for updates
-        if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
+        if (false) {
             AppInit.appReady(function () {
                 // launches periodic checks for updates cca every 24 hours
                 UpdateNotification.launchAutomaticUpdate();
@@ -444,8 +445,9 @@ define(function (require, exports, module) {
         // Prevent extensions from using window.open() to insecurely load untrusted web content
         var real_windowOpen = window.open;
         window.open = function (url) {
+            // HACK: Remove warning dialog about Brackets not been ready for browsers.
             // Allow file:// URLs, relative URLs (implicitly file: also), and about:blank
-            if (!url.match(/^file:\/\//) && !url.match(/^about:blank/) && url.indexOf(":") !== -1) {
+            if (false) {
                 throw new Error("Brackets-shell is not a secure general purpose web browser. Use NativeApp.openURLInDefaultBrowser() to open URLs in the user's main browser");
             }
             return real_windowOpen.apply(window, arguments);
