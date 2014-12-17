@@ -317,7 +317,7 @@ define(function (require, exports, module) {
         });
         
         // Check for updates
-        if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
+        if (false) {
             AppInit.appReady(function () {
                 // launches periodic checks for updates cca every 24 hours
                 UpdateNotification.launchAutomaticUpdate();
