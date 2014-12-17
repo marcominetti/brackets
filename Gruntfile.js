@@ -316,8 +316,8 @@ module.exports = function (grunt) {
 
     // task: build
     grunt.registerTask('build', [
-        'jshint:src',
-        'jasmine',
+        //'jshint:src',
+        //'jasmine',
         'clean',
         'less',
         'targethtml',
