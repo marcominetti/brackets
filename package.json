@@ -2,13 +2,12 @@
     "name": "node-brackets",
     "version": "0.45.0-0",
     "apiVersion": "0.45.0",
-    "homepage": "http://brackets.io",
     "issues": {
-        "url": "http://github.com/adobe/brackets/issues"
+        "url": "http://github.com/marco.minetti/brackets/issues"
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/adobe/brackets.git",
+        "url": "https://github.com/marco.minetti/brackets.git",
         "branch": "",
         "SHA": ""
     },
@@ -58,12 +57,16 @@
 	"rewire": "1.1.x"
     },
     "scripts": {
-        "postinstall": "grunt install"
+        "postinstall": "if [ -d \".git\" ]; then git submodule update --init --recursive; grunt install; fi"
     },
     "licenses": [
         {
             "type": "MIT",
             "url": "https://github.com/adobe/brackets/blob/master/LICENSE"
+        },
+	{
+            "type": "MIT",
+            "url": "https://github.com/rabchev/brackets-server/blob/master/LICENSE"
         }
     ]
 }
