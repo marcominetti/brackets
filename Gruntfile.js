@@ -308,7 +308,7 @@ module.exports = function (grunt) {
 
     // task: test
     grunt.registerTask('test', ['jshint:all', 'jasmine']);
-//    grunt.registerTask('test', ['jshint:all', 'jasmine', 'jasmine_node']);
+    // grunt.registerTask('test', ['jshint:all', 'jasmine', 'jasmine_node']);
 
     // task: set-release
     // Update version number in package.json and rewrite src/config.json
