@@ -21,7 +21,7 @@
         "linting.enabled_by_default": true,
         "build_timestamp": ""
     },
-    "name": "Brackets",
+    "name": "node-brackets",
     "version": "0.45.0-0",
     "apiVersion": "0.45.0",
     "homepage": "http://brackets.io",
@@ -41,8 +41,16 @@
         "ncp": "^1.0.0",
         "commander": "^2.3.0",
         "open": "^0.0.5",
+        "socket.io": "^1.1.0",
         "socket.io-client": "^1.1.0",
-        "glob": "^4.0.6"
+        "glob": "^4.0.6",
+        "decompress-zip": "0.0.2",
+        "semver": "2.x",
+        "fs-extra": "0.6.x",
+        "async": "0.2.x",
+        "request": "2.27.x",
+        "temp": "~0.6.0",
+        "connect": "~2.9.0"
     },
     "devDependencies": {
         "grunt": "0.4.1",
@@ -68,11 +76,11 @@
         "load-grunt-tasks": "0.2.0",
         "q": "0.9.2",
         "jshint": "2.1.4",
-        "xmldoc": "^0.1.2"
+        "xmldoc": "^0.1.2",
+        "rewire": "1.1.x"
     },
     "scripts": {
-        "postinstall": "grunt install",
-        "test": "grunt cla-check-pull test"
+        "postinstall": "grunt install"
     },
     "licenses": [
         {
