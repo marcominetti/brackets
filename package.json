@@ -54,7 +54,9 @@
         "q": "0.9.2",
         "jshint": "2.1.4",
         "xmldoc": "^0.1.2",
-	"rewire": "1.1.x"
+	"rewire": "1.1.x",
+	"fs-extra": "0.5.x",
+	
     },
     "scripts": {
         "postinstall": "if [ -d \".git\" ]; then git submodule update --init --recursive; grunt install; fi"
