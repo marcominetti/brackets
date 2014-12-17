@@ -1,0 +1,10 @@
+src
+tasks
+temp
+test
+tools
+.brackets.json
+.jshintrc
+.travis.yml
+CONTRIBUTING.md
+Gruntfile.js
