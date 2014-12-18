@@ -1,6 +1,7 @@
 # node-ide
 
 The project is a fork of [adobe/brackets](https://github.com/adobe/brackets) with some code from [rabchev/brackets-server](https://github.com/rabchev/brackets-server).
+
 The goal is to provide an up-to-date Adobe Brackets running instance for single project servers with optimizations (upcoming).
 
 
@@ -52,8 +53,11 @@ The goal is to provide an up-to-date Adobe Brackets running instance for single 
 MIT License
 
 Copyright (c) 2014-2015 Marco Minetti. All rights reserved.
+
 Copyright (c) 2012-2015 Adobe Systems Incorporated. All rights reserved.
+
 Copyright (c) 2012 Boyan Rabchev <boyan@rabchev.com>. All rights reserved.
+
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
