@@ -52,7 +52,7 @@ The goal is to provide an up-to-date Adobe Brackets running instance for single 
 MIT License
 
 Copyright (c) 2014-2015 Marco Minetti. All rights reserved.
-Copyright (c) 2012-2015 Adobe Systems Incorporated. All rights reserved.  
+Copyright (c) 2012-2015 Adobe Systems Incorporated. All rights reserved.
 Copyright (c) 2012 Boyan Rabchev <boyan@rabchev.com>. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a
