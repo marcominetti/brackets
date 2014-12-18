@@ -1,7 +1,7 @@
 # node-ide
 
 The project is a fork of [adobe/brackets](https://github.com/adobe/brackets) with some code from [rabchev/brackets-server](https://github.com/rabchev/brackets-server).
-The goal is to
+The goal is to provide an up-to-date Adobe Brackets running instance for single project servers with optimizations (upcoming).
 
 
 # Usage
@@ -32,7 +32,7 @@ The goal is to
 
 ```javascript
     require('child_process').spawn('node', [
-      platform.runtime.path.core + platform.development.tools[name]._process_path,
+      path.join(__dirname, "node_modules", "node-ide", "lib", "run.js"),
       '--port',
       '9092',
       '--proj-dir',
@@ -45,6 +45,7 @@ The goal is to
 
     console.log("You can access Brackets on http://localhost:9092/brackets/");
 ```
+
 
 # License
 
@@ -71,3 +72,4 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
+
