@@ -22,7 +22,7 @@
         "build_timestamp": ""
     },
     "name": "node-ide",
-    "version": "1.0.0-3",
+    "version": "1.0.0-4",
     "apiVersion": "1.0.0",
     "issues": {
         "url": "http://github.com/marco.minetti/brackets/issues"
