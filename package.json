@@ -1,6 +1,6 @@
 {
     "name": "node-ide",
-    "version": "1.0.0-4",
+    "version": "1.0.0-5",
     "apiVersion": "1.0.0",
     "description": "Brackets.io IDE for node.js application servers",
     "issues": {
