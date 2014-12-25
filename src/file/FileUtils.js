@@ -443,7 +443,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Get the parent directory of a file. If a directory is passed in the directory is returned.
+     * Get the parent directory of a file. If a directory is passed, the SAME directory is returned.
      * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the path to the parent directory of a file or the path of a directory,
      *                  including trailing "/"
@@ -453,8 +453,22 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Get the file name without the extension.
-     * @param {string} filename File name of a file or directory
+     * Get the parent folder of the given file/folder path. Differs from getDirectoryPath() when 'fullPath'
+     * is a directory itself: returns its parent instead of the original path. (Note: if you already have a
+     * FileSystemEntry, it's faster to use entry.parentPath instead).
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Path of containing folder (including trailing "/"); or "" if path was the root
+     */
+    function getParentPath(fullPath) {
+        if (fullPath === "/") {
+            return "";
+        }
+        return fullPath.substring(0, fullPath.lastIndexOf("/", fullPath.length - 2) + 1);
+    }
+
+    /**
+     * Get the file name without the extension. Returns "" if name starts with "."
+     * @param {string} filename File name of a file or directory, without preceding path
      * @return {string} Returns the file name without the extension
      */
     function getFilenameWithoutExtension(filename) {
@@ -521,6 +535,19 @@ define(function (require, exports, module) {
         return 0;
     }
 
+    /**
+     * @param {string} path Native path in the format used by FileSystemEntry.fullPath
+     * @return {string} URI-encoded version suitable for appending to 'file:///`. It's not safe to use encodeURI()
+     *     directly since it doesn't escape chars like "#".
+     */
+    function encodeFilePath(path) {
+        var pathArray = path.split("/");
+        pathArray = pathArray.map(function (subPath) {
+            return encodeURIComponent(subPath);
+        });
+        return pathArray.join("/");
+    }
+
     // Asynchronously loading Dialogs to avoid the circular dependency
     require(["widgets/Dialogs"], function (dialogsModule) {
         Dialogs = dialogsModule;
@@ -546,6 +573,7 @@ define(function (require, exports, module) {
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
     exports.getDirectoryPath               = getDirectoryPath;
+    exports.getParentPath                  = getParentPath;
     exports.getBaseName                    = getBaseName;
     exports.getRelativeFilename            = getRelativeFilename;
     exports.getFilenameWithoutExtension    = getFilenameWithoutExtension;
@@ -554,4 +582,5 @@ define(function (require, exports, module) {
     exports.compareFilenames               = compareFilenames;
     exports.comparePaths                   = comparePaths;
     exports.MAX_FILE_SIZE                  = MAX_FILE_SIZE;
+    exports.encodeFilePath                 = encodeFilePath;
 });

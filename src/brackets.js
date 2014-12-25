@@ -103,7 +103,7 @@ define(function (require, exports, module) {
     require("file/FileUtils");
     require("project/SidebarView");
     require("utils/Resizer");
-    require("LiveDevelopment/main");
+    //require("LiveDevelopment/main");
     require("utils/NodeConnection");
     require("utils/NodeDomain");
     require("utils/ColorUtils");
@@ -171,7 +171,7 @@ define(function (require, exports, module) {
             DocumentCommandHandlers : DocumentCommandHandlers,
             DocumentManager         : DocumentManager,
             DocumentModule          : require("document/Document"),
-            DOMAgent                : require("LiveDevelopment/Agents/DOMAgent"),
+            //DOMAgent                : require("LiveDevelopment/Agents/DOMAgent"),
             DragAndDrop             : DragAndDrop,
             EditorManager           : EditorManager,
             ExtensionLoader         : ExtensionLoader,
@@ -185,13 +185,14 @@ define(function (require, exports, module) {
             FindInFiles             : require("search/FindInFiles"),
             FindInFilesUI           : require("search/FindInFilesUI"),
             HTMLInstrumentation     : require("language/HTMLInstrumentation"),
-            Inspector               : require("LiveDevelopment/Inspector/Inspector"),
+            //Inspector               : require("LiveDevelopment/Inspector/Inspector"),
             InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),
             JSUtils                 : JSUtils,
             KeyBindingManager       : KeyBindingManager,
             LanguageManager         : LanguageManager,
-            LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
-            LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
+            //LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
+            //LiveDevMultiBrowser     : require("LiveDevelopment/LiveDevMultiBrowser"),
+            //LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
             MainViewManager         : MainViewManager,
             MainViewFactory         : require("view/MainViewFactory"),
             Menus                   : Menus,
@@ -200,7 +201,7 @@ define(function (require, exports, module) {
             PerfUtils               : PerfUtils,
             PreferencesManager      : PreferencesManager,
             ProjectManager          : ProjectManager,
-            RemoteAgent             : require("LiveDevelopment/Agents/RemoteAgent"),
+            //RemoteAgent             : require("LiveDevelopment/Agents/RemoteAgent"),
             ScrollTrackMarkers      : require("search/ScrollTrackMarkers"),
             UpdateNotification      : require("utils/UpdateNotification"),
             WorkingSetView          : WorkingSetView,
@@ -292,13 +293,24 @@ define(function (require, exports, module) {
                         PerfUtils.addMeasurement("Application Startup");
                         
                         if (PreferencesManager._isUserScopeCorrupt()) {
-                            Dialogs.showModalDialog(
-                                DefaultDialogs.DIALOG_ID_ERROR,
-                                Strings.ERROR_PREFS_CORRUPT_TITLE,
-                                Strings.ERROR_PREFS_CORRUPT
-                            )
+                            var userPrefFullPath = PreferencesManager.getUserPrefFile();
+                            // user scope can get corrupt only if the file exists, is readable,
+                            // but malformed. no need to check for its existance.
+                            var info = MainViewManager.findInAllWorkingSets(userPrefFullPath);
+                            var paneId;
+                            if (info.length) {
+                                paneId = info[0].paneId;
+                            }
+                            FileViewController.openFileAndAddToWorkingSet(userPrefFullPath, paneId)
                                 .done(function () {
-                                    CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
+                                    Dialogs.showModalDialog(
+                                        DefaultDialogs.DIALOG_ID_ERROR,
+                                        Strings.ERROR_PREFS_CORRUPT_TITLE,
+                                        Strings.ERROR_PREFS_CORRUPT
+                                    ).done(function () {
+                                        // give the focus back to the editor with the pref file
+                                        MainViewManager.focusActivePane();
+                                    });
                                 });
                         }
                         
@@ -410,10 +422,7 @@ define(function (require, exports, module) {
             // Text fields should always be focusable.
             var $target = $(e.target),
                 isFormElement =
-                    $target.is("input[type=text]") ||
-                    $target.is("input[type=number]") ||
-                    $target.is("input[type=password]") ||
-                    $target.is("input:not([type])") || // input with no type attribute defaults to text
+                    $target.is("input") ||
                     $target.is("textarea") ||
                     $target.is("select");
 

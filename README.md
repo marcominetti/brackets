@@ -1,10 +1,16 @@
 # node-ide
 
+<<<<<<< HEAD
 The project is a fork of [adobe/brackets](https://github.com/adobe/brackets) with some code from [rabchev/brackets-server](https://github.com/rabchev/brackets-server).
+=======
+Brackets is a modern open-source code editor for HTML, CSS
+and JavaScript that's *built* in HTML, CSS and JavaScript. 
+>>>>>>> ea908cae55233d34f04b4f2cab5faf62ffa4fb42
 
 The goal is to provide an up-to-date Adobe Brackets running instance for single project servers with optimizations (upcoming).
 
 
+<<<<<<< HEAD
 # Usage
 
 ## Javascript In-process
@@ -30,6 +36,20 @@ The goal is to provide an up-to-date Adobe Brackets running instance for single 
 ```
 
 ## Javascript Out-process
+=======
+Brackets is at 1.0 and we're not stopping there. We have many feature ideas on our
+[trello board](http://bit.ly/BracketsTrelloBoard) that we're anxious to add and other
+innovative web development workflows that we're planning to build into Brackets. 
+So take Brackets out for a spin and let us know how we can make it your favorite editor. 
+
+You can see some 
+[screenshots of Brackets](https://github.com/adobe/brackets/wiki/Brackets-Screenshots)
+on the wiki, [intro videos](http://www.youtube.com/user/CodeBrackets) on YouTube, and news on the [Brackets blog](http://blog.brackets.io/).
+
+How to install and run Brackets
+-------------------------------
+#### Download
+>>>>>>> ea908cae55233d34f04b4f2cab5faf62ffa4fb42
 
 ```javascript
     require('child_process').spawn('node', [
