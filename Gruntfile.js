@@ -141,7 +141,7 @@ module.exports = function (grunt) {
                     // Disable closure, we want define/require to be globals
                     wrap: false,
                     exclude: ["text!config.json"],
-                    uglify2: {} // https://github.com/mishoo/UglifyJS2,
+                    uglify2: {} // https://github.com/mishoo/UglifyJS2
                 }
             }
         },
@@ -251,7 +251,7 @@ module.exports = function (grunt) {
                 /* Keep in sync with test/SpecRunner.html dependencies */
                 vendor : [
                     'test/polyfills.js', /* For reference to why this polyfill is needed see Issue #7951. The need for this should go away once the version of phantomjs gets upgraded to 2.0 */
-                    'src/thirdparty/jquery-2.1.1.min.js',
+                    'src/thirdparty/jquery-2.1.3.min.js',
                     'src/thirdparty/CodeMirror2/lib/codemirror.js',
                     'src/thirdparty/CodeMirror2/lib/util/dialog.js',
                     'src/thirdparty/CodeMirror2/lib/util/searchcursor.js',

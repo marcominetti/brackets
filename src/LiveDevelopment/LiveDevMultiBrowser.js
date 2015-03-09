@@ -71,7 +71,9 @@ define(function (require, exports, module) {
     var STATUS_RELOADING     = exports.STATUS_RELOADING      =  5;
     var STATUS_RESTARTING    = exports.STATUS_RESTARTING     =  6;
 
-    var Dialogs              = require("widgets/Dialogs"),
+    var CommandManager       = require("command/CommandManager"),
+        Commands             = require("command/Commands"),
+        Dialogs              = require("widgets/Dialogs"),
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         DocumentManager      = require("document/DocumentManager"),
         EditorManager        = require("editor/EditorManager"),
@@ -467,10 +469,13 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Close all active connections
+     * Closes all active connections.
+     * Returns a resolved promise for API compatibility.
+     * @return {$.Promise} A resolved promise
      */
     function close() {
-        return _close(true);
+        _close(true);
+        return new $.Deferred().resolve().promise();
     }
     
     /**
@@ -695,14 +700,14 @@ define(function (require, exports, module) {
                 otherDocumentsInWorkingFiles;
 
             if (doc && !doc._masterEditor) {
-                otherDocumentsInWorkingFiles = DocumentManager.getWorkingSet().length;
-                DocumentManager.addToWorkingSet(doc.file);
+                otherDocumentsInWorkingFiles = MainViewManager.getWorkingSetSize(MainViewManager.ALL_PANES);
+                MainViewManager.addToWorkingSet(MainViewManager.ACTIVE_PANE, doc.file);
 
                 if (!otherDocumentsInWorkingFiles) {
-                    DocumentManager.setCurrentDocument(doc);
+                    CommandManager.execute(Commands.CMD_OPEN, { fullPath: doc.file.fullPath });
                 }
             }
-
+            
             // wait for server (StaticServer, Base URL or file:)
             prepareServerPromise
                 .done(function () {

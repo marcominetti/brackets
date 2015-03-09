@@ -150,7 +150,7 @@ define(function (require, exports, module) {
     
     function handleSwitchLanguage() {
         var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
-
+        
         FileSystem.getDirectoryForPath(stringsPath).getContents(function (err, entries) {
             if (!err) {
                 var $dialog,
