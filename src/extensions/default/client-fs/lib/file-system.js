@@ -5,7 +5,8 @@ define(function (require, exports) {
         FileSystemError     = require("filesystem/FileSystemError.js"),
         OpenDialog          = {},
         SaveDialog          = {},
-        io                  = require("thirdparty/socket.io.js");
+        io                  = require("thirdparty/socket.io.js"),
+        PreferencesManager  = null;
 
     /**
      * Callback to notify FileSystem of watcher changes
@@ -143,6 +144,21 @@ define(function (require, exports) {
         socket.emit("readdir", path, function (res) {
             if (res.err) {
                 return callback(_mapError(res.err));
+            }
+
+            if (PreferencesManager == null && brackets != null){
+              try {
+                PreferencesManager = brackets.getModule("preferences/PreferencesManager")
+              } catch(e) {}
+            }
+
+            if (PreferencesManager != null && PreferencesManager.get("debug.skipNodeModulesFolderList") === true) {
+                res.contents = res.contents.filter(function (val, idx) {
+                    if (val === 'node_modules'){
+                        return false;
+                    }
+                    return true;
+                });
             }
 
             var count = res.contents.length;

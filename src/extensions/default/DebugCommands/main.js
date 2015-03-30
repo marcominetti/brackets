@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         StringUtils            = brackets.getModule("utils/StringUtils"),
         Dialogs                = brackets.getModule("widgets/Dialogs"),
         Strings                = brackets.getModule("strings"),
+        ProjectManager         = brackets.getModule("project/ProjectManager"),
         PreferencesManager     = brackets.getModule("preferences/PreferencesManager"),
         LocalizationUtils      = brackets.getModule("utils/LocalizationUtils"),
         ErrorNotification      = require("ErrorNotification"),
@@ -69,9 +70,11 @@ define(function (require, exports, module) {
         DEBUG_LOG_NODE_STATE            = "debug.logNodeState",
         DEBUG_RESTART_NODE              = "debug.restartNode",
         DEBUG_SHOW_ERRORS_IN_STATUS_BAR = "debug.showErrorsInStatusBar",
+        DEBUG_SKIP_NODE_MODULES_FOLDER  = "debug.skipNodeModulesFolderList",
         DEBUG_OPEN_BRACKETS_SOURCE      = "debug.openBracketsSource";
 
     PreferencesManager.definePreference(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, "boolean", false);
+    PreferencesManager.definePreference(DEBUG_SKIP_NODE_MODULES_FOLDER, "boolean", true);
     
     function handleShowDeveloperTools() {
         brackets.app.showDeveloperTools();
@@ -229,6 +232,25 @@ define(function (require, exports, module) {
             }
         });
     }
+
+    function toggleNodeModulesFolderList(bool){
+        var val,
+            oldPref = !!PreferencesManager.get(DEBUG_SKIP_NODE_MODULES_FOLDER);
+
+        if (bool === undefined) {
+            val = !oldPref;
+        } else {
+            val = !!bool;
+        }
+
+        ProjectManager.refreshFileTree();
+
+        // update menu
+        CommandManager.get(DEBUG_SKIP_NODE_MODULES_FOLDER).setChecked(val);
+        if (val !== oldPref) {
+            PreferencesManager.set(DEBUG_SKIP_NODE_MODULES_FOLDER, val);
+        }
+    }
     
     function toggleErrorNotification(bool) {
         var val,
@@ -276,7 +298,8 @@ define(function (require, exports, module) {
 
     CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,           DEBUG_SWITCH_LANGUAGE,           handleSwitchLanguage);
     CommandManager.register(Strings.CMD_SHOW_ERRORS_IN_STATUS_BAR, DEBUG_SHOW_ERRORS_IN_STATUS_BAR, toggleErrorNotification);
-    
+    CommandManager.register(Strings.CMD_SKIP_NODE_MODULES_FOLDER,  DEBUG_SKIP_NODE_MODULES_FOLDER,  toggleNodeModulesFolderList);
+
     // Node-related Commands
     //CommandManager.register(Strings.CMD_ENABLE_NODE_DEBUGGER, DEBUG_ENABLE_NODE_DEBUGGER,   NodeDebugUtils.enableDebugger);
     //CommandManager.register(Strings.CMD_LOG_NODE_STATE,       DEBUG_LOG_NODE_STATE,         NodeDebugUtils.logNodeState);
@@ -287,6 +310,12 @@ define(function (require, exports, module) {
 
     PreferencesManager.on("change", DEBUG_SHOW_ERRORS_IN_STATUS_BAR, function () {
         toggleErrorNotification(PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR));
+    });
+
+    toggleNodeModulesFolderList(PreferencesManager.get(DEBUG_SKIP_NODE_MODULES_FOLDER));
+
+    PreferencesManager.on("change", DEBUG_SKIP_NODE_MODULES_FOLDER, function () {
+      toggleNodeModulesFolderList(PreferencesManager.get(DEBUG_SKIP_NODE_MODULES_FOLDER));
     });
     
     /*
@@ -308,9 +337,10 @@ define(function (require, exports, module) {
     //menu.addMenuItem(DEBUG_LOG_NODE_STATE);
     //menu.addMenuItem(DEBUG_RESTART_NODE);
     menu.addMenuItem(DEBUG_SHOW_ERRORS_IN_STATUS_BAR);
+    menu.addMenuItem(DEBUG_SKIP_NODE_MODULES_FOLDER);
     menu.addMenuItem(Commands.FILE_OPEN_PREFERENCES); // this command is defined in core, but exposed only in Debug menu for now
     menu.addMenuItem(Commands.FILE_OPEN_KEYMAP);      // this command is defined in core, but exposed only in Debug menu for now
-    
+
     // exposed for convenience, but not official API
     exports._runUnitTests = _runUnitTests;
 });
