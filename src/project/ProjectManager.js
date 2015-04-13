@@ -922,6 +922,10 @@ define(function (require, exports, module) {
                             });
                     }
                 });
+                $(window).on('beforeunload', function() {
+                    exports.trigger("beforeAppClose");
+                    return "Saving current environment state, please wait until page is idle.";
+                });
             }
         });
 
@@ -1237,7 +1241,7 @@ define(function (require, exports, module) {
 
     exports.on("projectOpen", _reloadProjectPreferencesScope);
     exports.on("projectOpen", _saveProjectPath);
-    exports.on("beforeAppClose", _unwatchProjectRoot);
+    //exports.on("beforeAppClose", _unwatchProjectRoot);
 
     // Due to circular dependencies, not safe to call on() directly for other modules' events
     EventDispatcher.on_duringInit(FileViewController, "documentSelectionFocusChange", _documentSelectionFocusChange);
