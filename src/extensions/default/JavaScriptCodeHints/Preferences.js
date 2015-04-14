@@ -147,10 +147,10 @@ define(function (require, exports, module) {
     function Preferences(prefs) {
         var BASE_EXCLUDED_DIRECTORIES = null, /* if the user has settings, we don't exclude anything by default */
             // exclude node_modules for performance reasons and because we don't do full hinting for those anyhow.
-            DEFAULT_EXCLUDED_DIRECTORIES = /node_modules/,
+            DEFAULT_EXCLUDED_DIRECTORIES = /node_modules|^_.*$/,
             // exclude require and jquery since we have special knowledge of those
-            BASE_EXCLUDED_FILES = /^require.*\.js$|^jquery.*\.js$/,
-            DEFAULT_MAX_FILE_COUNT = 100,
+            BASE_EXCLUDED_FILES = /^require.*\.js$|^jquery.*\.js$|^_.*\.js$/,
+            DEFAULT_MAX_FILE_COUNT = 1000,
             DEFAULT_MAX_FILE_SIZE = 512 * 1024;
 
         if (prefs) {
