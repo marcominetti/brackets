@@ -1,0 +1,14 @@
+{
+  "name": "codemirror.esnext.highlight",
+  "title": "ECMAScript 6/7 Syntax Highlighting",
+  "description": "Adds syntax highlighting support for async/await.",
+  "homepage": "https://github.com/marcominetti/brackets-esnext-highlight",
+  "version": "0.0.1",
+  "keywords": ["syntax", "highlight", "highlighting", "ecmascript", "async", "await", "esnext"],
+  "categories": "linting",
+  "author": "Marco Minetti <marco.minetti@novetica.org>",
+  "license": "MIT",
+  "engines": {
+    "brackets": ">=0.38.0"
+  }
+}
