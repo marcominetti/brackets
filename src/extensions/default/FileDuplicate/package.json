@@ -1,0 +1,20 @@
+{
+    "name": "torin.duplicate",
+    "title": "Duplicate Files & Folders",
+    "description": "Duplicate, copy, and move files and folders in the project view.",
+    "homepage": "https://github.com/torinpascal/brackets-duplicate-extension",
+    "version": "1.1.0",
+    "author": "Torin Pascal <torinpascal@gmail.com>",
+    "license": "MIT",
+    "categories": "",
+    "keywords": [
+        "duplicate", "file", "folder", "subfolder", "copy", "move"
+    ],
+    "files": [
+        "main.js",
+        "README.md"
+    ],
+    "engines": {
+        "brackets": ">=0.34.0"
+    }
+}
