@@ -1,0 +1,12 @@
+{
+    "name": "pessotti.doubleclick-match-brackets",
+    "title": "Double-click Brackets Selection",
+    "description": "Brackets extension to select the block inside matching brackets by double clicking a bracket",
+    "homepage": "https://github.com/pessotti/brackets-resizable-bottom-working-files",
+    "version": "1.0.0",
+    "author": "Hugo Pessotti <hpessotti@gmail.com>",
+    "license": "MIT",
+    "engines": {
+        "brackets": ">=0.44.0"
+    }
+}
