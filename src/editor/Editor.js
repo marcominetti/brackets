@@ -126,19 +126,19 @@ define(function (require, exports, module) {
     cmOptions[USE_TAB_CHAR]       = "indentWithTabs";
     cmOptions[WORD_WRAP]          = "lineWrapping";
     
-    PreferencesManager.definePreference(CLOSE_BRACKETS,     "boolean", false);
+    PreferencesManager.definePreference(CLOSE_BRACKETS,     "boolean", true);
     PreferencesManager.definePreference(CLOSE_TAGS,         "Object", { whenOpening: true, whenClosing: true, indentTags: [] });
     PreferencesManager.definePreference(DRAG_DROP,          "boolean", false);
-    PreferencesManager.definePreference(HIGHLIGHT_MATCHES,  "boolean", false);
+    PreferencesManager.definePreference(HIGHLIGHT_MATCHES,  "boolean", true);
     PreferencesManager.definePreference(SCROLL_PAST_END,    "boolean", false);
-    PreferencesManager.definePreference(SHOW_CURSOR_SELECT, "boolean", false);
+    PreferencesManager.definePreference(SHOW_CURSOR_SELECT, "boolean", true);
     PreferencesManager.definePreference(SHOW_LINE_NUMBERS,  "boolean", true);
     PreferencesManager.definePreference(SMART_INDENT,       "boolean", true);
     PreferencesManager.definePreference(SOFT_TABS,          "boolean", true);
     PreferencesManager.definePreference(SPACE_UNITS,        "number", DEFAULT_SPACE_UNITS, {
         validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_SPACE_UNITS, MAX_SPACE_UNITS)
     });
-    PreferencesManager.definePreference(STYLE_ACTIVE_LINE,  "boolean", false);
+    PreferencesManager.definePreference(STYLE_ACTIVE_LINE,  "boolean", true);
     PreferencesManager.definePreference(TAB_SIZE,           "number", DEFAULT_TAB_SIZE, {
         validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_TAB_SIZE, MAX_TAB_SIZE)
     });
