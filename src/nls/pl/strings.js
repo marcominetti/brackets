@@ -505,7 +505,6 @@ define({
     "CMD_LOG_NODE_STATE"                   : "Zapisz stan Node do Konsoli",
     "CMD_RESTART_NODE"                     : "Zrestartuj Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"        : "Show Errors in Status Bar",
-    "CMD_SKIP_NODE_MODULES_FOLDER"         : "Skip \"node_modules\" Folders",
 
     "LANGUAGE_TITLE"                       : "Zmień język",
     "LANGUAGE_MESSAGE"                     : "Wybierz język z poniższej listy:",

@@ -25,7 +25,7 @@ module.exports = function (grunt) {
     'use strict';
 
     // load dependencies
-    require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin']});
+    require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin', 'grunt-cleanempty']});
     grunt.loadTasks('tasks');
 
     // Project configuration.
@@ -59,6 +59,7 @@ module.exports = function (grunt) {
                             'xorigin.js',
                             'dependencies.js',
                             'thirdparty/requirejs/require.js',
+                            'LiveDevelopment/LiveDevelopmentUtils.js',
                             '!LiveDevelopment/launch.html'
                         ]
                     },
@@ -104,6 +105,13 @@ module.exports = function (grunt) {
                     }
                 ]
             }
+        },
+        cleanempty: {
+            options: {
+                force: true,
+                files: false
+            },
+            src: ['dist/**/*'],
         },
         less: {
             dist: {
@@ -329,6 +337,7 @@ module.exports = function (grunt) {
         /*'cssmin',*/
         /*'uglify',*/
         'copy',
+        'cleanempty',
         'usemin',
         'build-config'
     ]);

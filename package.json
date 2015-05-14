@@ -1,7 +1,7 @@
 {
     "name": "node-ide",
-    "version": "1.2.0-8",
-    "apiVersion": "1.2.0",
+    "version": "1.4.0-0",
+    "apiVersion": "1.4.0",
     "description": "Brackets.io IDE for node.js application servers",
     "issues": {
         "url": "http://github.com/marcominetti/brackets/issues"
@@ -56,6 +56,7 @@
         "semver": "^4.1.0",
         "jshint": "2.1.4",
         "xmldoc": "^0.1.2",
+	"grunt-cleanempty": "1.0.3",
 	"rewire": "1.1.x",
 	"fs-extra": "0.5.x"	
     },
