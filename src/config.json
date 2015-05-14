@@ -22,7 +22,7 @@
         "build_timestamp": ""
     },
     "name": "node-ide",
-    "version": "1.2.0-1",
+    "version": "1.2.0-7",
     "apiVersion": "1.2.0",
     "description": "Brackets.io IDE for node.js application servers",
     "issues": {
@@ -82,7 +82,7 @@
         "fs-extra": "0.5.x"
     },
     "scripts": {
-        "postinstall": "if [ -d \".git\" ]; then git submodule update --init --recursive; grunt install; fi"
+        "devinstall": "git submodule update --init --recursive && grunt install"
     },
     "licenses": [
         {

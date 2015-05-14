@@ -1,6 +1,6 @@
 {
     "name": "node-ide",
-    "version": "1.2.0-6",
+    "version": "1.2.0-7",
     "apiVersion": "1.2.0",
     "description": "Brackets.io IDE for node.js application servers",
     "issues": {
@@ -60,7 +60,8 @@
 	"fs-extra": "0.5.x"	
     },
     "scripts": {
-        "postinstall": "if [ -d \".git\" ]; then git submodule update --init --recursive; grunt install; fi"
+        "dev-install": "git submodule update --init --recursive && grunt install",
+        "dev-build": "grunt build"
     },
     "licenses": [
         {
