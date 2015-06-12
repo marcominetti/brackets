@@ -22,7 +22,7 @@ The goal is to provide an up-to-date Adobe Brackets running instance for single 
         supportDir: path.join(__dirname, "..", "data"),
         allowUserDomains: false,
     };
-    brackets(server, options);
+    brackets.start(server, options);
 
     server.listen(9092);
 
