@@ -26,75 +26,120 @@
  * @date 10/24/13 9:35:26 AM
  */
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, require, $, brackets*/
-
-require.config({
-    paths: {
-        "text" : "lib/text",
-        "i18n" : "lib/i18n"
-    },
-    locale: brackets.getLocale()
-});
-
+/*global define, $, brackets*/
 define(function (require, exports, module) {
     "use strict";
-    var CodeMirror              = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
-        Strings                 = require("strings"),
+
+    var CodeMirror              = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
+        Strings                 = brackets.getModule("strings"),
         AppInit                 = brackets.getModule("utils/AppInit"),
         CommandManager          = brackets.getModule("command/CommandManager"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
+        Editor                  = brackets.getModule("editor/Editor").Editor,
         EditorManager           = brackets.getModule("editor/EditorManager"),
         ProjectManager          = brackets.getModule("project/ProjectManager"),
+        ViewStateManager        = brackets.getModule("view/ViewStateManager"),
         KeyBindingManager       = brackets.getModule("command/KeyBindingManager"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
-        Menus					= brackets.getModule("command/Menus"),
-        prefs                   = require("./Prefs"),
+        Menus                   = brackets.getModule("command/Menus"),
+        prefs                   = require("Prefs"),
         COLLAPSE_ALL            = "codefolding.collapse.all",
         COLLAPSE                = "codefolding.collapse",
         EXPAND                  = "codefolding.expand",
         EXPAND_ALL              = "codefolding.expand.all",
         GUTTER_NAME             = "CodeMirror-foldgutter",
-        COLLAPSE_CUSTOM_REGIONS = "codefolding.collapse.customregions",
-        CODE_FOLDING_SETTINGS	= "codefolding.settings",
-        SettingsDialog          = require("SettingsDialog"),
+        codeFoldingMenuDivider  = "codefolding.divider",
         collapseKey             = "Ctrl-Alt-[",
         expandKey               = "Ctrl-Alt-]",
         collapseAllKey          = "Alt-1",
-        expandAllKey            = "Shift-Alt-1";
+        expandAllKey            = "Shift-Alt-1",
+        collapseAllKeyMac       = "Cmd-1",
+        expandAllKeyMac         = "Cmd-Shift-1";
 
+    ExtensionUtils.loadStyleSheet(module, "main.less");
 
-    //load code mirror addons
-    brackets.getModule(["thirdparty/CodeMirror2/addon/fold/brace-fold"]);
-    brackets.getModule(["thirdparty/CodeMirror2/addon/fold/comment-fold"]);
-    brackets.getModule(["thirdparty/CodeMirror2/addon/fold/markdown-fold"]);
+    // Load CodeMirror addons
+    brackets.getModule(["thirdparty/CodeMirror/addon/fold/brace-fold"]);
+    brackets.getModule(["thirdparty/CodeMirror/addon/fold/comment-fold"]);
+    brackets.getModule(["thirdparty/CodeMirror/addon/fold/markdown-fold"]);
 
-    //still using slightly modified versions of the foldcode.js and foldgutter.js since we
-    //need to modify the gutter click handler to take care of some collapse and expand features
-    //e.g. collapsing all children when 'alt' key is pressed
+    // Still using slightly modified versions of the foldcode.js and foldgutter.js since we
+    // need to modify the gutter click handler to take care of some collapse and expand features
+    // e.g. collapsing all children when 'alt' key is pressed
     var foldGutter              = require("foldhelpers/foldgutter"),
-        foldCode                = require("foldhelpers/foldcode");
+        foldCode                = require("foldhelpers/foldcode"),
+        indentFold              = require("foldhelpers/indentFold"),
+        selectionFold           = require("foldhelpers/foldSelected");
 
-    var indentFold              = require("foldhelpers/indentFold"),
-        regionFold              = require("foldhelpers/region-fold");
+
+    /** Set to true when init() has run; set back to false after deinit() has run */
+    var _isInitialized = false;
 
     /**
-        Restores the linefolds in the editor using values fetched from the preference store
-        Checks the document to ensure that changes have not been made (e.g., in a different editor)
-        to invalidate the saved line folds.
-        @param {Editor} editor  the editor whose saved line folds should be restored
-        */
+      * Restores the linefolds in the editor using values fetched from the preference store
+      * Checks the document to ensure that changes have not been made (e.g., in a different editor)
+      * to invalidate the saved line folds.
+      * Selection Folds are found by comparing the line folds in the preference store with the
+      * selection ranges in the viewState of the current document. Any selection range in the view state
+      * that is folded in the prefs will be folded. Unlike other fold range finder, the only validation
+      * on selection folds is to check that they satisfy the minimum fold range.
+      * @param {Editor} editor  the editor whose saved line folds should be restored
+      */
     function restoreLineFolds(editor) {
+        /**
+         * Checks if the range from and to Pos is the same as the selection start and end Pos
+         * @param   {Object}  range     {from, to} where from and to are CodeMirror.Pos objects
+         * @param   {Object}  selection {start, end} where start and end are CodeMirror.Pos objects
+         * @returns {Boolean} true if the range and selection span the same region and false otherwise
+         */
+        function rangeEqualsSelection(range, selection) {
+            return range.from.line === selection.start.line && range.from.ch === selection.start.ch &&
+                range.to.line === selection.end.line && range.to.ch === selection.end.ch;
+        }
+
+        /**
+         * Checks if the range is equal to one of the selections in the viewState
+         * @param   {Object}  range     {from, to} where from and to are CodeMirror.Pos objects.
+         * @param   {Object}  viewState The current editor's ViewState object
+         * @returns {Boolean} true if the range is found in the list of selections or false if not.
+         */
+        function isInViewStateSelection(range, viewState) {
+            if (!viewState || !viewState.selections) {
+                return false;
+            }
+
+            return viewState.selections.some(function (selection) {
+                return rangeEqualsSelection(range, selection);
+            });
+        }
+
         var saveFolds = prefs.getSetting("saveFoldStates");
         if (!editor || !saveFolds) {
             return;
         }
+        var viewState = ViewStateManager.getViewState(editor.document.file);
         var cm = editor._codeMirror;
         var path = editor.document.file.fullPath;
         var folds = cm._lineFolds || prefs.getFolds(path);
-        cm._lineFolds = cm.getValidFolds(folds);
+        //separate out selection folds from non-selection folds
+        var nonSelectionFolds = {}, selectionFolds = {}, range;
+        Object.keys(folds).forEach(function (line) {
+            range = folds[line];
+            if (isInViewStateSelection(range, viewState)) {
+                selectionFolds[line] = range;
+            } else {
+                nonSelectionFolds[line] = range;
+            }
+        });
+        nonSelectionFolds = cm.getValidFolds(nonSelectionFolds);
+        //add the selection folds
+        Object.keys(selectionFolds).forEach(function (line) {
+            nonSelectionFolds[line] = selectionFolds[line];
+        });
+        cm._lineFolds = nonSelectionFolds;
         prefs.setFolds(path, cm._lineFolds);
         Object.keys(cm._lineFolds).forEach(function (line) {
-            cm.foldCode(Number(line));
+            cm.foldCode(Number(line), {range: cm._lineFolds[line]});
         });
     }
 
@@ -150,24 +195,6 @@ define(function (require, exports, module) {
     }
 
     /**
-        Collapses all custom regions defined in the current editor
-    */
-    function collapseCustomRegions() {
-        var editor = EditorManager.getFocusedEditor();
-        if (editor) {
-            var cm = editor._codeMirror, i = cm.firstLine();
-            while (i < cm.lastLine()) {
-                var range = cm.foldCode(i, {rangeFinder: regionFold});
-                if (range) {
-                    i = range.to.line;
-                } else {
-                    i++;
-                }
-            }
-        }
-    }
-
-     /**
       * Collapses the code region nearest the current cursor position.
       * Nearest is found by searching from the current line and moving up the document until an
       * opening code-folding region is found.
@@ -200,18 +227,18 @@ define(function (require, exports, module) {
     }
 
     /**
-        Collapses all foldable regions in the current document. Folding is done up to a level 'n'
-        which is defined in the preferences. Levels refer to fold heirarchies e.g., for the following
-        code fragment, the function is level 1, the if statement is level 2 and the forEach is level 3
-
-            function sample() {
-                if (debug) {
-                    logMessages.forEach(function (m) {
-                        console.debug(m);
-                    });
-                }
-            }
-    */
+      * Collapses all foldable regions in the current document. Folding is done up to a level 'n'
+      * which is defined in the `maxFoldLevel` preference. Levels refer to fold heirarchies e.g., for the following
+      * code fragment, the function is level 1, the if statement is level 2 and the forEach is level 3
+      *
+      *     function sample() {
+      *         if (debug) {
+      *             logMessages.forEach(function (m) {
+      *                 console.debug(m);
+      *             });
+      *         }
+      *     }
+      */
     function collapseAll() {
         var editor = EditorManager.getFocusedEditor();
         if (editor) {
@@ -221,8 +248,8 @@ define(function (require, exports, module) {
     }
 
     /**
-        Expands all folded regions in the current document
-    */
+      * Expands all folded regions in the current document
+      */
     function expandAll() {
         var editor = EditorManager.getFocusedEditor();
         if (editor) {
@@ -270,6 +297,21 @@ define(function (require, exports, module) {
         });
     }
 
+    /**
+     * Remove the fold gutter for a given CodeMirror instance.
+     * @param {CodeMirror} cm the CodeMirror instance whose gutter should be removed
+     */
+    function removeGutter(editor) {
+        var cm = editor._codeMirror;
+        var gutters = cm.getOption("gutters").slice(0);
+        var index = gutters.indexOf(GUTTER_NAME);
+        $(editor.getRootElement()).removeClass("folding-enabled");
+        gutters.splice(index, 1);
+        cm.setOption("gutters",  gutters);
+        cm.refresh();  // force recomputing gutter width - .folding-enabled class affected linenumbers gutter
+        CodeMirror.defineOption("foldGutter", false, null);
+    }
+
     /** Add gutter and restore saved expand/collapse state */
     function enableFoldingInEditor(editor) {
         if (editor._codeMirror.getOption("gutters").indexOf(GUTTER_NAME) === -1) {
@@ -278,7 +320,7 @@ define(function (require, exports, module) {
         }
     }
 
-     /**
+    /**
       * When a brand new editor is seen, initialise fold-gutter and restore line folds in it. Save line folds in
       * departing editor in case it's getting closed.
       * @param {object} event the event object
@@ -302,92 +344,113 @@ define(function (require, exports, module) {
         saveLineFolds(EditorManager.getActiveEditor());
     }
 
+    /**
+     * Remove code-folding functionality
+     */
+    function deinit() {
+        _isInitialized = false;
 
-    function showSettingsDialog() {
-        SettingsDialog.show(function () {
-            var editor = EditorManager.getCurrentFullEditor();
-            if (editor) {
-                var cm = editor._codeMirror;
-                if (prefs.getSetting("hideUntilMouseover")) {
-                    foldGutter.clearGutter(cm);
-                } else {
-                    foldGutter.updateInViewport(cm);
+        KeyBindingManager.removeBinding(collapseKey);
+        KeyBindingManager.removeBinding(expandKey);
+        KeyBindingManager.removeBinding(collapseAllKey);
+        KeyBindingManager.removeBinding(expandAllKey);
+        KeyBindingManager.removeBinding(collapseAllKeyMac);
+        KeyBindingManager.removeBinding(expandAllKeyMac);
+
+        //remove menus
+        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuDivider(codeFoldingMenuDivider.id);
+        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(COLLAPSE);
+        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(EXPAND);
+        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(COLLAPSE_ALL);
+        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(EXPAND_ALL);
+
+        EditorManager.off(".CodeFolding");
+        DocumentManager.off(".CodeFolding");
+        ProjectManager.off(".CodeFolding");
+
+        // Remove gutter & revert collapsed sections in all currently open editors
+        Editor.forEveryEditor(function (editor) {
+            CodeMirror.commands.unfoldAll(editor._codeMirror);
+            removeGutter(editor);
+        });
+    }
+
+    /**
+     * Enable code-folding functionality
+     */
+    function init() {
+        _isInitialized = true;
+
+        foldCode.init();
+        foldGutter.init();
+
+        // Many CodeMirror modes specify which fold helper should be used for that language. For a few that
+        // don't, we register helpers explicitly here. We also register a global helper for generic indent-based
+        // folding, which cuts across all languages if enabled via preference.
+        CodeMirror.registerGlobalHelper("fold", "selectionFold", function (mode, cm) {
+            return prefs.getSetting("makeSelectionsFoldable");
+        }, selectionFold);
+        CodeMirror.registerGlobalHelper("fold", "indent", function (mode, cm) {
+            return prefs.getSetting("alwaysUseIndentFold");
+        }, indentFold);
+
+        CodeMirror.registerHelper("fold", "django", CodeMirror.helpers.fold.brace);
+        CodeMirror.registerHelper("fold", "tornado", CodeMirror.helpers.fold.brace);
+
+        EditorManager.on("activeEditorChange.CodeFolding", onActiveEditorChanged);
+        DocumentManager.on("documentRefreshed.CodeFolding", function (event, doc) {
+            restoreLineFolds(doc._masterEditor);
+        });
+
+        ProjectManager.on("beforeProjectClose.CodeFolding beforeAppClose.CodeFolding", saveBeforeClose);
+
+        //create menus
+        codeFoldingMenuDivider = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuDivider();
+        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE_ALL);
+        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND_ALL);
+        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE);
+        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND);
+
+        //register keybindings
+        KeyBindingManager.addBinding(COLLAPSE_ALL, [ {key: collapseAllKey}, {key: collapseAllKeyMac, platform: "mac"} ]);
+        KeyBindingManager.addBinding(EXPAND_ALL, [ {key: expandAllKey}, {key: expandAllKeyMac, platform: "mac"} ]);
+        KeyBindingManager.addBinding(COLLAPSE, collapseKey);
+        KeyBindingManager.addBinding(EXPAND, expandKey);
+
+
+        // Add gutters & restore saved expand/collapse state in all currently open editors
+        Editor.forEveryEditor(function (editor) {
+            enableFoldingInEditor(editor);
+        });
+    }
+
+    /**
+      * Register change listener for the preferences file.
+      */
+    function watchPrefsForChanges() {
+        prefs.prefsObject.on("change", function (e, data) {
+            if (data.ids.indexOf("enabled") > -1) {
+                // Check if enabled state mismatches whether code-folding is actually initialized (can't assume
+                // since preference change events can occur when the value hasn't really changed)
+                var isEnabled = prefs.getSetting("enabled");
+                if (isEnabled && !_isInitialized) {
+                    init();
+                } else if (!isEnabled && _isInitialized) {
+                    deinit();
                 }
             }
         });
     }
 
-    /**
-        Initialise the extension
-    */
-    function init() {
-        ExtensionUtils.loadStyleSheet(module, "main.less");
-        foldCode.init();
-        foldGutter.init();
-        //register a global fold helper based on indentation folds
-        CodeMirror.registerGlobalHelper("fold", "indent", function (mode, cm) {
-            return prefs.getSetting("alwaysUseIndentFold");
-        }, indentFold);
-
-        CodeMirror.registerGlobalHelper("fold", "region", function (mode, cm) {
-            return prefs.getSetting("enableRegionFolding");
-        }, regionFold);
-
-        CodeMirror.registerHelper("fold", "django", CodeMirror.helpers.fold.brace);
-        CodeMirror.registerHelper("fold", "tornado", CodeMirror.helpers.fold.brace);
-
-        $(EditorManager).on("activeEditorChange.BracketsCodeFolding", onActiveEditorChanged);
-        $(DocumentManager).on("documentRefreshed.BracketsCodeFolding", function (event, doc) {
-            if (prefs.getSetting("enabled")) {
-                restoreLineFolds(doc._masterEditor);
-            }
-        });
-
-        $(ProjectManager).on("beforeProjectClose.BracketsCodeFolding beforeAppClose.BracketsCodeFolding", saveBeforeClose);
-
-        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuDivider();
-        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CODE_FOLDING_SETTINGS);
-        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE);
-        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND);
-        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE_ALL);
-        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND_ALL);
-        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE_CUSTOM_REGIONS);
-
-        KeyBindingManager.addBinding(COLLAPSE, collapseKey);
-        KeyBindingManager.addBinding(EXPAND, expandKey);
-        KeyBindingManager.addBinding(COLLAPSE_ALL, collapseAllKey);
-        KeyBindingManager.addBinding(EXPAND_ALL, expandAllKey);
-
-        ///put region fold on top of the globals list so that it has priority over comments folds
-        var finder = CodeMirror.fold._global.pop();
-        if (finder) {
-            CodeMirror.fold._global.unshift(finder);
-        }
-
-        var editor = EditorManager.getCurrentFullEditor();
-        if (editor) {
-            enableFoldingInEditor(editor);
-            var cm = editor._codeMirror;
-            if (prefs.getSetting("hideUntilMouseover")) {
-                foldGutter.clearGutter(cm);
-            } else {
-                foldGutter.updateInViewport(cm);
-            }
-        }
-    }
-
     AppInit.htmlReady(function () {
-        CommandManager.register(Strings.CODE_FOLDING_SETTINGS + "...", CODE_FOLDING_SETTINGS, showSettingsDialog);
         CommandManager.register(Strings.COLLAPSE_ALL, COLLAPSE_ALL, collapseAll);
         CommandManager.register(Strings.EXPAND_ALL, EXPAND_ALL, expandAll);
-        CommandManager.register(Strings.COLLAPSE_CUSTOM_REGIONS, COLLAPSE_CUSTOM_REGIONS, collapseCustomRegions);
         CommandManager.register(Strings.COLLAPSE_CURRENT, COLLAPSE, collapseCurrent);
         CommandManager.register(Strings.EXPAND_CURRENT, EXPAND, expandCurrent);
-        if (prefs.getSetting("enabled") && !CodeMirror.fold.combine) {
+
+        if (prefs.getSetting("enabled")) {
             init();
-        } else if (!prefs.getSetting("enabled")) {
-            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuDivider();
-            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CODE_FOLDING_SETTINGS);
         }
+        watchPrefsForChanges();
     });
 });

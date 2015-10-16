@@ -8,37 +8,45 @@
 /*global define, brackets*/
 define(function (require, exports, module) {
     "use strict";
-    var PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
-        ProjectManager          = brackets.getModule("project/ProjectManager"),
-        prefs                   = PreferencesManager.getExtensionPrefs("brackets-code-folding"),
-        strings                 = require("strings"),
-        store                   = {},
-        DefaultSettings         = require("DefaultSettings"),
-        foldsKey                = "bracket-code-folding.folds";
 
-        //define default preference values if they have not yet been defined
-        prefs.definePreference("enabled", "boolean", true,
-                               {name: strings.ENABLE_CODE_FOLDING, description: strings.ENABLE_CODE_FOLDING});
-        prefs.definePreference("minFoldSize", "number", 2,
-                               {name: strings.MIN_FOLD_SIZE, description: strings.MIN_FOLD_SIZE_HELP});
-        prefs.definePreference("saveFoldStates", "boolean", true,
-                               {name: strings.SAVE_FOLD_STATES, description: strings.SAVE_FOLD_STATES_HELP});
-        prefs.definePreference("alwaysUseIndentFold", "boolean", true,
-                               {name: strings.ALWAYS_USE_INDENT_FOLD, description: strings.ALWAYS_USE_INDENT_FOLD_HELP});
-        prefs.definePreference("enableRegionFolding", "boolean", true,
-                               {name: strings.ENABLE_REGION_FOLDING, description: strings.ENABLE_REGION_FOLDING});
-        prefs.definePreference("hideUntilMouseover", "boolean", false,
-                               {name: strings.FADE_FOLD_BUTTONS, description: strings.FADE_FOLD_BUTTONS_HELP});
-        prefs.definePreference("maxFoldLevel", "number", 2,
-                               {name: strings.MAX_FOLD_LEVEL, description: strings.MAX_FOLD_LEVEL_HELP});
-        PreferencesManager.stateManager.definePreference(foldsKey, "object", {});
+    var ProjectManager              = brackets.getModule("project/ProjectManager"),
+        PreferencesManager          = brackets.getModule("preferences/PreferencesManager"),
+        Strings                     = brackets.getModule("strings"),
+        prefs                       = PreferencesManager.getExtensionPrefs("code-folding"),
+        FOLDS_PREF_KEY              = "code-folding.folds",
+        // preference key strings are here for now since they are not used in any UI
+        ENABLE_CODE_FOLDING         = "Enable code folding",
+        MIN_FOLD_SIZE               = "Minimum fold size",
+        SAVE_FOLD_STATES            = "Save fold states",
+        ALWAYS_USE_INDENT_FOLD      = "Always use indent fold",
+        HIDE_FOLD_BUTTONS           = "Hide fold triangles",
+        MAX_FOLD_LEVEL              = "Max fold level",
+        MAKE_SELECTIONS_FOLDABLE     = "Makes selections foldable";
+
+    //default preference values
+    prefs.definePreference("enabled", "boolean", true,
+                           {name: ENABLE_CODE_FOLDING, description: Strings.DESCRIPTION_CODE_FOLDING_ENABLED});
+    prefs.definePreference("minFoldSize", "number", 2,
+                           {name: MIN_FOLD_SIZE, description: Strings.DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE});
+    prefs.definePreference("saveFoldStates", "boolean", true,
+                           {name: SAVE_FOLD_STATES, description: Strings.DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES});
+    prefs.definePreference("alwaysUseIndentFold", "boolean", true,
+                           {name: ALWAYS_USE_INDENT_FOLD, description: Strings.DESCRIPTION_CODE_FOLDING_ALWAY_USE_INDENT_FOLD});
+    prefs.definePreference("hideUntilMouseover", "boolean", false,
+                           {name: HIDE_FOLD_BUTTONS, description: Strings.DESCRIPTION_CODE_FOLDING_HIDE_UNTIL_MOUSEOVER});
+    prefs.definePreference("maxFoldLevel", "number", 2,
+                           {name: MAX_FOLD_LEVEL, description: Strings.DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL});
+    prefs.definePreference("makeSelectionsFoldable", "boolean", true,
+                           {name: MAKE_SELECTIONS_FOLDABLE, description: Strings.DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE});
+
+    PreferencesManager.stateManager.definePreference(FOLDS_PREF_KEY, "object", {});
 
     /**
-        Simplifies the fold ranges into an array of pairs of numbers.
-        @param {!{number: {from: {ch, line}, to: {ch, line}} folds the raw fold ranges indexed by line numbers
-        @returns {number: Array<Array<number>>} an object whose keys are line numbers and the values are array
-        of two 2-element arrays. First array contains [from.line, from.ch] and the second contains [to.line, to.ch]
-    */
+      * Simplifies the fold ranges into an array of pairs of numbers.
+      * @param {!Object} folds the raw fold ranges indexed by line numbers
+      * @return {Object} an object whose keys are line numbers and the values are array
+      * of two 2-element arrays. First array contains [from.line, from.ch] and the second contains [to.line, to.ch]
+      */
     function simplify(folds) {
         if (!folds) {
             return;
@@ -52,11 +60,11 @@ define(function (require, exports, module) {
     }
 
     /**
-        Inflates the fold ranges stored as simplified numeric arrays. The inflation converts the data into
-        objects whose keys are line numbers and whose values are objects in the format {from: {line, ch}, to: {line, ch}}.
-        @param {number: Array<Array<number>>}  folds the simplified fold ranges
-        @returns {number: {from: {line, ch}, to: {line, ch}}}
-    */
+      * Inflates the fold ranges stored as simplified numeric arrays. The inflation converts the data into
+      * objects whose keys are line numbers and whose values are objects in the format {from: {line, ch}, to: {line, ch}}.
+      * @param {Object}  folds the simplified fold ranges
+      * @return {Object} the converted fold ranges
+      */
     function inflate(folds) {
         if (!folds) {
             return;
@@ -89,7 +97,7 @@ define(function (require, exports, module) {
       */
     function getFolds(path) {
         var context = getViewStateContext();
-        var folds = PreferencesManager.getViewState(foldsKey, context);
+        var folds = PreferencesManager.getViewState(FOLDS_PREF_KEY, context);
         return inflate(folds[path]);
     }
 
@@ -100,9 +108,9 @@ define(function (require, exports, module) {
       */
     function setFolds(path, folds) {
         var context = getViewStateContext();
-        var allFolds = PreferencesManager.getViewState(foldsKey, context);
+        var allFolds = PreferencesManager.getViewState(FOLDS_PREF_KEY, context);
         allFolds[path] = simplify(folds);
-        PreferencesManager.setViewState(foldsKey, allFolds, context);
+        PreferencesManager.setViewState(FOLDS_PREF_KEY, allFolds, context);
     }
 
     /**
@@ -113,44 +121,17 @@ define(function (require, exports, module) {
     function getSetting(key) {
         return prefs.get(key);
     }
-    /**
-        Set the code folding setting attributed to the given key using the value supplied
-        @param {!string} key the key for the setting to set
-        @param {object} value the new value for the object
-    */
-    function setSetting(key, value) {
-        prefs.set(key, value);
-    }
 
     /**
-        Gets all the values for code folding settings.
-        @returns {object} all settings saved in the preferences.
-    */
-    function getAllSettings() {
-        var res = {};
-        Object.keys(DefaultSettings).forEach(function (key) {
-            res[key] = getSetting(key);
-        });
-        return res;
-    }
-
-    /**
-        Clears all the saved line folds for all documents.
-    */
+      * Clears all the saved line folds for all documents.
+      */
     function clearAllFolds() {
-        PreferencesManager.setViewState(foldsKey, {});
+        PreferencesManager.setViewState(FOLDS_PREF_KEY, {});
     }
 
     module.exports.getFolds = getFolds;
-
     module.exports.setFolds = setFolds;
-
     module.exports.getSetting = getSetting;
-
-    module.exports.setSetting = setSetting;
-
-    module.exports.getAllSettings = getAllSettings;
-
     module.exports.clearAllFolds = clearAllFolds;
-
+    module.exports.prefsObject = prefs;
 });

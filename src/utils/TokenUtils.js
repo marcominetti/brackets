@@ -34,7 +34,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var _           = require("thirdparty/lodash"),
-        CodeMirror  = require("thirdparty/CodeMirror2/lib/codemirror");
+        CodeMirror  = require("thirdparty/CodeMirror/lib/codemirror");
     
     var cache;
     
@@ -62,7 +62,7 @@ define(function (require, exports, module) {
                 cm: cm,
                 line: line,
                 timeStamp: Date.now(),
-                tokens: tokens,
+                tokens: tokens
             };
             cm.off("changes", _clearCache);
             cm.on("changes", _clearCache);

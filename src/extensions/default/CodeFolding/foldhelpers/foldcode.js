@@ -6,7 +6,7 @@
 /*global define, brackets, document*/
 define(function (require, exports, module) {
     "use strict";
-    var CodeMirror          = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
+    var CodeMirror          = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
         prefs               = require("Prefs");
 
     /**
@@ -84,8 +84,9 @@ define(function (require, exports, module) {
             __isFold: true
         });
 
-        CodeMirror.on(widget, "mousedown", function () {
+        CodeMirror.on(widget, "mousedown", function (e) {
             textRange.clear();
+            e.preventDefault();
         });
 
         textRange.on("clear", function (from, to) {
@@ -136,7 +137,6 @@ define(function (require, exports, module) {
                         cachedRange = folds[lineNumber];
                         if (range && cachedRange && range.from.line === cachedRange.from.line &&
                                 range.to.line === cachedRange.to.line) {
-                            cm.foldCode(lineNumber, {range: folds[lineNumber]}, "fold");
                             result[lineNumber] = folds[lineNumber];
                         }
                     }
@@ -226,7 +226,9 @@ define(function (require, exports, module) {
         };
 
         /**
-          * Helper to combine an array of fold range finders into one
+          * Helper to combine an array of fold range finders into one. This goes through the
+          * list of fold helpers in the parameter arguments and returns the first non-null
+          * range found from calling the fold helpers in order.
           */
         CodeMirror.registerHelper("fold", "combine", function () {
             var funcs = Array.prototype.slice.call(arguments, 0);
@@ -248,7 +250,7 @@ define(function (require, exports, module) {
           * @param {number} start the current position in the document
           */
         CodeMirror.registerHelper("fold", "auto", function (cm, start) {
-            var helpers = cm.getHelpers(start, "fold"), i, cur;
+            var helpers = cm.getHelpers(start, "fold"), i, range;
             //ensure mode helper is loaded if there is one
             var mode = cm.getMode().name;
             var modeHelper = CodeMirror.fold[mode];
@@ -256,8 +258,8 @@ define(function (require, exports, module) {
                 helpers.push(modeHelper);
             }
             for (i = 0; i < helpers.length; i++) {
-                cur = helpers[i](cm, start);
-                if (cur) { return cur; }
+                range = helpers[i](cm, start);
+                if (range && range.to.line - range.from.line >= prefs.getSetting("minFoldSize")) { return range; }
             }
         });
     }

@@ -199,6 +199,21 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Returns an array of the IDs of providers registered for a specific language
+     *
+     * @param {!string} languageId
+     * @return {Array.<string>} Names of registered providers.
+     */
+    function getProviderIDsForLanguage(languageId) {
+        if (!_providers[languageId]) {
+            return [];
+        }
+        return _providers[languageId].map(function (provider) {
+            return provider.name;
+        });
+    }
+
+    /**
      * Runs a file inspection over passed file. Uses the given list of providers if specified, otherwise uses
      * the set of providers that are registered for the file's language.
      * This method doesn't update the Brackets UI, just provides inspection results.
@@ -314,6 +329,7 @@ define(function (require, exports, module) {
         if (providersReportingProblems.length === 1) {
             // don't show a header if there is only one provider available for this file type
             $problemsPanelTable.find(".inspector-section").hide();
+            $problemsPanelTable.find("tr").removeClass("forced-hidden");
 
             if (numProblems === 1 && !aborted) {
                 message = StringUtils.format(Strings.SINGLE_ERROR, providersReportingProblems[0].name);
@@ -399,6 +415,7 @@ define(function (require, exports, module) {
                 // Augment error objects with additional fields needed by Mustache template
                 results.forEach(function (inspectionResult) {
                     var provider = inspectionResult.provider;
+                    var isExpanded = prefs.get(provider.name + ".collapsed") !== false;
 
                     if (inspectionResult.result) {
                         inspectionResult.result.errors.forEach(function (error) {
@@ -407,12 +424,15 @@ define(function (require, exports, module) {
                                     (error.pos.line + 1) > 0 &&
                                     (error.codeSnippet = currentDoc.getLine(error.pos.line)) !== undefined) {
                                 error.friendlyLine = error.pos.line + 1;
-                                error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
+                                error.codeSnippet = error.codeSnippet.substr(0, 175);  // limit snippet width
                             }
                             
                             if (error.type !== Type.META) {
                                 numProblems++;
                             }
+                            
+                            // Hide the errors when the provider is collapsed.
+                            error.display = isExpanded ? "" : "forced-hidden";
                         });
 
                         // if the code inspector was unable to process the whole file, we keep track to show a different status
@@ -422,6 +442,7 @@ define(function (require, exports, module) {
 
                         if (inspectionResult.result.errors.length) {
                             allErrors.push({
+                                isExpanded:   isExpanded,
                                 providerName: provider.name,
                                 results:      inspectionResult.result.errors
                             });
@@ -594,18 +615,33 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_GOTO_FIRST_PROBLEM,     Commands.NAVIGATE_GOTO_FIRST_PROBLEM,   handleGotoFirstProblem);
     
     // Register preferences
-    prefs.definePreference(PREF_ENABLED, "boolean", brackets.config["linting.enabled_by_default"])
+    prefs.definePreference(PREF_ENABLED, "boolean", brackets.config["linting.enabled_by_default"], {
+        description: Strings.DESCRIPTION_LINTING_ENABLED
+    })
         .on("change", function (e, data) {
             toggleEnabled(prefs.get(PREF_ENABLED), true);
         });
     
-    prefs.definePreference(PREF_COLLAPSED, "boolean", false)
+    prefs.definePreference(PREF_COLLAPSED, "boolean", false, {
+        description: Strings.DESCRIPTION_LINTING_COLLAPSED
+    })
         .on("change", function (e, data) {
             toggleCollapsed(prefs.get(PREF_COLLAPSED), true);
         });
     
-    prefs.definePreference(PREF_ASYNC_TIMEOUT, "number", 10000);
-        
+    prefs.definePreference(PREF_ASYNC_TIMEOUT, "number", 10000, {
+        description: Strings.DESCRIPTION_ASYNC_TIMEOUT
+    });
+
+    prefs.definePreference(PREF_PREFER_PROVIDERS, "array", [], {
+        description: Strings.DESCRIPTION_LINTING_PREFER,
+        valueType: "string"
+    });
+
+    prefs.definePreference(PREF_PREFERRED_ONLY, "boolean", false, {
+        description: Strings.DESCRIPTION_USE_PREFERED_ONLY
+    });
+
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         // Create bottom panel to list error details
@@ -625,11 +661,20 @@ define(function (require, exports, module) {
 
                 // This is a inspector title row, expand/collapse on click
                 if ($selectedRow.hasClass("inspector-section")) {
-                    // Clicking the inspector title section header collapses/expands result rows
-                    $selectedRow.nextUntil(".inspector-section").toggle();
-
                     var $triangle = $(".disclosure-triangle", $selectedRow);
+                    var isExpanded = $triangle.hasClass("expanded");
+
+                    // Clicking the inspector title section header collapses/expands result rows
+                    if (isExpanded) {
+                        $selectedRow.nextUntil(".inspector-section").addClass("forced-hidden");
+                    } else {
+                        $selectedRow.nextUntil(".inspector-section").removeClass("forced-hidden");
+                    }
                     $triangle.toggleClass("expanded");
+
+                    var providerName = $selectedRow.find("input[type='hidden']").val();
+                    prefs.set(providerName + ".collapsed", !isExpanded);
+                    prefs.save();
                 } else {
                     // This is a problem marker row, show the result on click
                     // Grab the required position data
@@ -673,10 +718,11 @@ define(function (require, exports, module) {
     exports._PREF_PREFERRED_ONLY    = PREF_PREFERRED_ONLY;
 
     // Public API
-    exports.register            = register;
-    exports.Type                = Type;
-    exports.toggleEnabled       = toggleEnabled;
-    exports.inspectFile         = inspectFile;
-    exports.requestRun          = run;
-    exports.getProvidersForPath = getProvidersForPath;
+    exports.register                    = register;
+    exports.Type                        = Type;
+    exports.toggleEnabled               = toggleEnabled;
+    exports.inspectFile                 = inspectFile;
+    exports.requestRun                  = run;
+    exports.getProvidersForPath         = getProvidersForPath;
+    exports.getProviderIDsForLanguage   = getProviderIDsForLanguage;
 });

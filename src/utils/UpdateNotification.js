@@ -50,7 +50,7 @@ define(function (require, exports, module) {
     var TWO_MINUTES = 1000 * 60 * 2;
 
     // Extract current build number from package.json version field 0.0.0-0
-    var _buildNumber = Number(/-([0-9]+)/.exec(brackets.metadata.version)[1]);
+    var _buildNumber = Number(/-([0-9]+)/.exec(brackets.metadata.version)||[null,0][1]);
     
     // Init default last build number
     PreferencesManager.stateManager.definePreference("lastNotifiedBuildNumber", "number", 0);
@@ -106,7 +106,7 @@ define(function (require, exports, module) {
             locale = locale.substring(0, 2);
         }
 
-        return brackets.config.update_info_url + locale + ".json";
+        return brackets.config.update_info_url + '?locale=' + locale;
     }
 
     /**
