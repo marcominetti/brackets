@@ -51,7 +51,9 @@
         "async": "0.2.x",
         "request": "2.27.x",
         "temp": "~0.6.0",
-        "connect": "~2.9.0"
+        "connect": "~2.9.0",
+        "findup": "latest",
+        "jscs": "latest"
     },
     "devDependencies": {
         "grunt": "0.4.5",

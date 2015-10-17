@@ -47,7 +47,7 @@ module.exports = function (grunt) {
             distConfig = grunt.file.readJSON("src/config.json");
         
         build.getGitInfo(process.cwd()).then(function (gitInfo) {
-            distConfig.version = distConfig.version.substr(0, distConfig.version.lastIndexOf("-") + 1) + gitInfo.commits;
+            distConfig.version = distConfig.version;
             distConfig.repository.SHA = gitInfo.sha;
             distConfig.repository.branch = gitInfo.branch;
             distConfig.config.build_timestamp = new Date().toString().split('(')[0].trim();
