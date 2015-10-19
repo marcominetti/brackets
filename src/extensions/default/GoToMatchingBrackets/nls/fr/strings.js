@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2013 Website Duck LLC
+ * Copyright (c) 2015 David Waterston. All rights reserved.
+ * Distributed under an MIT license:
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -18,16 +19,14 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
+ *
  */
 
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define */
-define(function (require, exports, module) {
-    'use strict';
 
-	module.exports = {
-		NAME: 'brackets-minimap',
-		defaultPreferences: {
-			enabled: true
-		}
-	};
+define({
+
+    "MENU_NAVIGATE_GOTO_MATCHING_BRACKET": "Aller au symbole correspondant"
+
 });

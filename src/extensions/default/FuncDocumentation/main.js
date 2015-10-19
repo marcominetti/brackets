@@ -1,3 +1,4 @@
+/* @flow */
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
  *
@@ -57,22 +58,61 @@ define(function (require, exports, module) {
 	
 	ExtensionUtils.loadStyleSheet(module, 'dialog/css/prefs.css');
 	
+
     var COMMAND_ID          = 'funcdocr';
     var COMMAND_ID_SETTINGS = 'funcdocr.settings';
 
+    var PREDEFINED_FUNCTIONS = ['if','switch','for','foreach','while'];
+    
+    var BEFORE_FUNCTION_STARTS =  /[\t ]*/;
+    var ONLY_ONE_LINEBREAK = /[\t ]*\s??[\t ]*/;
 	
-	var FUNCTION_FORM_VAR 	= /\s*(?:var)?\s*[A-Za-z\$\_][A-Za-z\$\_\.0-9]*\s*=/; // var stuff =
-	var FUNCTION_FORM_OBJ 	= /\s*[A-Za-z\$\_][A-Za-z\$\_0-9]*\.(?:prototype\.)?[A-Za-z\$\_][A-Za-z\$\_0-9]*\s*=/; // abc.stuff =
-	var FUNCTION_FORM_CLASS	= /\s*[A-Za-z\$\_][A-Za-z\$\_0-9]*:/; // sayName:
-	var FUNCTION_PS			= /(?:(?:public (?:static )?|private (?:static )?|protected (?:static ))|(?:(?:static )?public |(?:static )?private |(?:static )?protected))/;
-	
-	var FUNCTION_FORM 		= new RegExp('(?:'+FUNCTION_FORM_VAR.source+'|'+FUNCTION_FORM_OBJ.source+'|'+FUNCTION_FORM_CLASS.source+')');
-	
-	var FUNCTION_BEGINNING  = new RegExp(FUNCTION_FORM.source+'?\\s*'+FUNCTION_PS.source+'?\\s*(function\\s+)?([A-Za-z\\$\\_][A-Za-z\\$\\_0-9]*)?'); 
-		
-    var FUNCTION_PARAM     	= /\s*\(([^{]*)\)\s*{/; // maybe not the best way to get the function parameters (matching brackets)
-	var FUNCTION_REGEXP		= new RegExp('^'+FUNCTION_FORM.source+'?\\s*'+FUNCTION_PS.source+'?\\s*(?:function\\s+)?(?:[A-Za-z\\$\\_][A-Za-z\\$\\_0-9]*)'+FUNCTION_PARAM.source); 
-	
+	var FUNCTION_FORM_VAR 	= /(?:var)?\s*[A-Za-z\$\_][A-Za-z\$\_\.0-9]*\s*=/; // var stuff =
+	var FUNCTION_FORM_OBJ 	= /(?:[A-Za-z\$\_][A-Za-z\$\_0-9]*\.)+(?:prototype\.)?[A-Za-z\$\_][A-Za-z\$\_0-9]*\s*=/; // abc.stuff =
+	var FUNCTION_FORM_CLASS	= /[A-Za-z\$\_][A-Za-z\$\_0-9]*:/; // sayName:
+	var FUNCTION_PS			= /(?:(?:(?:(?:public )?(?:static )?|private (?:static )?|protected (?:static ))|(?:(?:static )?public |(?:static )?private |(?:static )?protected))[\t ]*\s??[\t ]*)/;
+    
+    var FUNCTION_ES6_66 = /^\s*[(]?(\s*|(?:\s*[A-Za-z\$\_][A-Za-z\$\_\.0-9]*,?)+)[)]?\s*?=>\s*{/;
+    
+    var FUNCTION_FORM_ES6 = new RegExp(
+        FUNCTION_FORM_VAR.source+FUNCTION_ES6_66.source+ONLY_ONE_LINEBREAK.source
+    );
+    
+    var FUNCTION_FORM_VAR_COMPLETE = new RegExp(
+        FUNCTION_FORM_VAR.source+FUNCTION_PS.source+'?'+ONLY_ONE_LINEBREAK.source
+    );
+    
+    var FUNCTION_FORM_OBJ_COMPLETE = new RegExp(
+        FUNCTION_FORM_OBJ.source+FUNCTION_PS.source+'?'+ONLY_ONE_LINEBREAK.source
+    );
+    
+    var FUNCTION_FORM_CLASS_COMPLETE = new RegExp(
+        FUNCTION_FORM_CLASS.source+FUNCTION_PS.source+'?'+ONLY_ONE_LINEBREAK.source
+    );
+    
+    var FUNCTION_FORM_NORMAL = new RegExp(
+        FUNCTION_PS.source+'?(?:function\\s+)?(?:[A-Za-z\\$\\_][A-Za-z\\$\\_0-9]*)'
+    );
+        
+    var FUNCTION_FORM_NORMAL_PLUS = new RegExp(
+        FUNCTION_PS.source+'?(?:[A-Za-z\\$\\_][A-Za-z\\$\\_0-9]*):\\s+(?:function\\s+)?(?:[A-Za-z\\$\\_][A-Za-z\\$\\_0-9]*)'
+    );
+    
+//    var FUNCTION_FORM_NORMAL_PLUS = /.?/;
+    
+    var FUNCTION_NAME = /\s+(?:[A-Za-z\$\_][A-Za-z\$\_0-9]*)/;
+//    var FUNCTION_NAME = /.?/;
+    
+        
+    var FUNCTION_WO_PARAM   = new RegExp('^'+BEFORE_FUNCTION_STARTS.source+'(?:(?:'+FUNCTION_FORM_NORMAL.source+'|'+FUNCTION_FORM_NORMAL_PLUS.source+'|'+FUNCTION_FORM_VAR_COMPLETE.source+'function|'+FUNCTION_FORM_OBJ_COMPLETE.source+'function'+FUNCTION_NAME.source+'?|'+FUNCTION_FORM_CLASS_COMPLETE.source+'function)'+ONLY_ONE_LINEBREAK.source+')');
+
+    
+	var DEEP_FUNCTION_CHECK	= new RegExp(BEFORE_FUNCTION_STARTS.source+'([A-Za-z\\$\\_][A-Za-z\\$\\_0-9]*)');
+    	
+    var FUNCTION_PARAM         = /\s*\(([^{};]*)\)\s*{/; // will be validated in checkIfFunction
+	var FUNCTION_REGEXP		= new RegExp(FUNCTION_WO_PARAM.source+FUNCTION_PARAM.source+'|'+FUNCTION_FORM_ES6.source); 
+	var FUNCTION_REGEXP_EXTRA_MATCHES = new RegExp(FUNCTION_WO_PARAM.source+'('+FUNCTION_PARAM.source+')'); 
+	    
     var INDENTATION_REGEXP  = /^([\t\ ]*)/;
 
     var DOCBLOCK_BOUNDARY   = /[A-Za-z\[\]]/;
@@ -84,6 +124,7 @@ define(function (require, exports, module) {
     var DOCBLOCK_LAST_FIELD = /.*(\[\[[^\]]+\]\])/;
 	var DOCBLOCK_PAR_LINE 	= /(\s+\*\s+@param\s+)([^ ]+\s+)([^ ]+\s+)(.*)/;
 	var DOCBLOCK_RET_LINE 	= /(\s+\*\s+@returns?\s+)([^ ]+\s+)/;
+	var DOCBLOCK_AT_LINE 	= /(\s+\*\s+@([a-zA-Z]*)\s+)([^ ]+\s*)/;
 	var DOCBLOCK_MULTI_LINE = /^(\s*)(\*)(\s+)/;
 
 	var TYPEOF_LONG 		= /^if\s*\(\s*typeof\s*(.*?)===?\s+["']undefined["']\s*\)?\s*(.*?)=(.*)/;
@@ -94,7 +135,7 @@ define(function (require, exports, module) {
 	var SHORTCUT_REGEX		= /^((Cmd|Ctrl|Alt|Shift)-){1,3}\S$/i;
 
 	// reactjs 
-	var REACTJS_FUNCTION    = new RegExp('^\\s*'+FUNCTION_FORM.source+'?\\s*React\\.createClass\\(\\{');
+	var REACTJS_FUNCTION    = new RegExp('^\\s*'+FUNCTION_FORM_VAR.source+'\\s*React\\.createClass\\(\\{');
 	var REACTJS_PROPS	    = /[^a-zA-Z0-9]this\.props\.([a-zA-Z_$][0-9a-zA-Z_$]*)/g;
 	
 	
@@ -130,6 +171,7 @@ define(function (require, exports, module) {
 	var langId;
 	var hintOpen = false; // hintManager not open
 
+    
     // =========================================================================
     // Doc Block Generation
     // =========================================================================
@@ -144,7 +186,12 @@ define(function (require, exports, module) {
 		if (SUPPORTED_LANGS.indexOf(langId) < 0) {
 			return;
 		}
-        insertDocBlock(generateDocBlock(getFunctionSignature()));
+        var signatureObj = getFunctionSignature();
+        if (signatureObj) {
+            insertDocBlock(generateDocBlock(signatureObj));
+        } else {
+            return;   
+        }
     }
 
     /**
@@ -159,9 +206,15 @@ define(function (require, exports, module) {
 		var code 		= editor.document.getRange({ch:0,line:position.line},{ch:0,line:editor.lineCount()});
         
         var docExists   = DOCBLOCK_END.test(lineBefore) ? true : false;
-
+        
 		var matches     = FUNCTION_REGEXP.exec(code);
-			
+        if (!matches) {
+            return null;   
+        }
+        
+        if (!matches[1]) {
+            matches.splice(1,1); 
+        }
 	
         var signature   = {};
 		// defaults
@@ -179,6 +232,10 @@ define(function (require, exports, module) {
 			return null;
 		}
 			
+        if (!deepFunctionCheck(matches)) {
+            return null;   
+        }
+        
 		if (docExists) { // try to update the doc block (parameter added or deleted)
 			var doc = getExistingDocSignature(document,position);
 			var docStartLine = doc.startLine;
@@ -188,9 +245,15 @@ define(function (require, exports, module) {
 			if (docSignature.description != '') {
 				signature.description = docSignature.description;
 			}
-
+            var docSigKeys = Object.keys(docSignature);
+            for(var k = 0; k < docSigKeys.length; k++) {
+                if (docSigKeys[k] !== 'returns' && docSigKeys[k] !== 'parameters') {
+                    signature[docSigKeys[k]] = docSignature[docSigKeys[k]];
+                }
+            }
+            
 			for (var i = 0; i < docSignature.parameters.length; i++) {
-				var paramIndex = signature.parameters.keyIndexOf('name',docSignature.parameters[i].name);
+				var paramIndex = keyIndexOf(signature.parameters,'name',docSignature.parameters[i].name);
 				if (paramIndex >= 0) {
 					if (signature.parameters[paramIndex].optional && signature.parameters[paramIndex].default !== false) {
 						signature.parameters[paramIndex].description = docSignature.parameters[i].description;
@@ -215,7 +278,7 @@ define(function (require, exports, module) {
     }
 
 	function getNormalSignature(signature,editor,position,matches) {
-		var parameters 	= matches[1].split(',');
+		var parameters 	= specialSplitComma(matches[1]);
 
         for (var i = 0; i < parameters.length; ++i) {
             var name = parameters[i].trim();
@@ -228,6 +291,9 @@ define(function (require, exports, module) {
 		// get the function code and returns (Object)
 		var codeTypes = getFunctionCodeTypes(editor,position,signature.parameters);
 		if (codeTypes) {
+            console.log('throw throws: ',codeTypes.throws);
+            signature.throws = codeTypes.throws;
+            
 			signature.returns = codeTypes.returns;
 			for (var i = 0; i < codeTypes.paramTypes.length; i++) { // add the paramTypes to signature.parameters
 				signature.parameters[i].type = codeTypes.paramTypes[i];
@@ -239,7 +305,6 @@ define(function (require, exports, module) {
 		}
 		return signature;
 	}
-	
 	
     function getReactSignature(signature,editor,position,currentLine) {
         var matches     = REACTJS_FUNCTION.exec(currentLine);		
@@ -310,12 +375,17 @@ define(function (require, exports, module) {
 		var commentTags = lines.join('\n').split(/[\n]\s*@/);
 
 		tags.description = commentTags[0]; // the first (without @ is the description/summary)
-		if (commentTags.length == 1) {
+        
+        var t = 1;
+        if (commentTags.length == 1) {
 			tags.returns = {bool: false};
 		}
+        
+		
 
 		var params = [];
-		for (var i = 1; i < commentTags.length; i++) {
+        // start with the index directly after the description ends
+		for (var i = t; i < commentTags.length; i++) {
 			// get params
 			if (commentTags[i].substr(0,5) === 'param') {
 				var param_parts = commentTags[i].split(/(\s)+/);
@@ -324,8 +394,20 @@ define(function (require, exports, module) {
 				// get the split delimiters
 				var delimiters = param_parts.filter(function(v,i) { return ((i % 2) === 1); });
 				param_parts = param_parts.filter(function(v,i) { return ((i % 2 === 0)); });
-
-
+                
+                // if the variable is optional it will start with '[' and there might be '=' inside the '['
+                // => change param_parts so that param_parts[2] is the "name" starting with '[' and ending with ']'
+                if (param_parts[2].charAt(0) == '[') {
+                    while (param_parts.length >= 4) {
+                        if (param_parts[2].charAt(param_parts[2].length-1) == ']') {
+                            break;   
+                        }
+                        param_parts[2]+=delimiters[3]+param_parts[3];
+                        param_parts.splice(3,1);
+                        delimiters.splice(3,1);
+                    }
+                }
+                    
 				// 0 = param, [1 = type], 2 = title 3- = description
 				switch(langId) {
 					case "jsx":
@@ -386,7 +468,24 @@ define(function (require, exports, module) {
 				param.description = (typeof param.description === "undefined") ? '' : param.description;
 				params.push(param);
 			}
-
+            // get all other specified tags (not param/return) 
+            if (commentTags[i].substr(0,6) !== 'return' && commentTags[i].substr(0,5) !== 'param') {
+                var currentTag = commentTags[i].substr(0,commentTags[i].indexOf(' '));
+                var tabs = getTabsForATag(currentTag);
+                var tagRegex = getRegexForATag(currentTag);
+                var tagTabsMatches = tagRegex.exec('@'+commentTags[i]);
+                if (!(currentTag in tags)) {
+                    tags[currentTag] = [];
+                }
+                var tagTabObj = {};
+                for (var tt = 1; tt < tagTabsMatches.length; tt++) {
+                    tagTabObj[tabs[tt-1]] = tagTabsMatches[tt].trim();   
+                }
+                tags[currentTag].push(tagTabObj);
+            }
+            
+            
+            
 
 			if (commentTags[i].substr(0,6) === 'return') {
 				if (commentTags[i].substr(0,7) === 'returns') {
@@ -443,8 +542,8 @@ define(function (require, exports, module) {
 
         // Determine the longest parameter and the longest type so we can right-pad them
 		var maxPadding = getMaxPadding(signature);
-		var maxParamLength = maxPadding.title;
-        var maxTypeLength = maxPadding.type;
+        var maxTypeLength = maxPadding[1];
+		var maxParamLength = maxPadding[2];
 		
 		// returns or return
 		var returnDocName = 'returns';
@@ -453,8 +552,43 @@ define(function (require, exports, module) {
 		}
 		
 		// if returns is set show align the types of params and returns
-		var tagRightSpace = signature.returns.bool ? ' '.times(returnDocName.length-'param'.length+1) : ' ';
+		var tagRightSpace = signature.returns.bool ? times(' ',returnDocName.length-'param'.length+1) : ' ';
 
+        var sigKeys = Object.keys(signature);
+        
+        for (var sk = 0; sk < sigKeys.length; sk++) {
+            var sigKey = sigKeys[sk];
+            if (sigKey !== 'parameters' && sigKey !== 'returns' && sigKey !== 'indentation' && sigKey !== 'description') {
+                for (var ski = 0; ski < signature[sigKey].length; ski++) {
+                    var cTag = signature[sigKey][ski];
+                    var tagDef = getTagDef(sigKey);
+                    if (!tagDef) {
+                        break;
+                    }
+                    var outputLine = tagDef.replace(/\[\[([a-zA-Z]*)\]\]/g,function(match,p1) {
+                        if (p1.toLowerCase() in cTag) {
+                            return cTag[p1.toLowerCase()];
+                        } else {
+                            return '[['+p1+']]';
+                        }
+                    });
+                    
+                    
+                    if ("description" in signature[sigKey][ski]) {
+                        var tagRegex = getRegexForATag(sigKey);
+                        var tagTabsMatches = tagRegex.exec(outputLine);
+                        var length = outputLine.length - tagTabsMatches[tagTabsMatches.length-1].length; 
+                        outputLine = outputLine.replace(/\n/g, function(match) {
+                            return '\n * '+times(' ',length);
+                        });
+                    }
+                    output.push(' * '+ outputLine);
+                }
+            }
+        }
+        
+        
+        
         // Add the parameter lines
         for (var i = 0; i < signature.parameters.length; i++) {
             var parameter = signature.parameters[i];
@@ -520,11 +654,13 @@ define(function (require, exports, module) {
 	/**
 	 * Get the maximum padding for param types and titles
 	 * @param   {Object} signature .parameters,.returns
-	 * @returns {Object} .title,.type
+	 * @returns {Array}  0: maximum length of @... , 1: maximum of first [[]] etc
 	 */
 	function getMaxPadding(signature) {
+        var result = [];
 		var maxParamLength = 0;
 		var maxTypeLength = 0;
+        
 		for (var i = 0; i < signature.parameters.length; i++) {
 			var parameter 	= signature.parameters[i]; // parameter changes => signature changes
 			parameter.type 	= parameter.type ? parameter.type.trim().split(/\n/) : ['[[Type]]'];
@@ -550,10 +686,7 @@ define(function (require, exports, module) {
 				}
 			}
 		}
-		return {
-			title: 	maxParamLength,
-			type:	maxTypeLength
-		}
+		return [8,maxTypeLength,maxParamLength];
 	}
 
 
@@ -658,28 +791,28 @@ define(function (require, exports, module) {
  					// currentLine is empty or *
 					var currentLine = editor.document.getLine(currentLineNr);
 					var code 		= editor.document.getRange({ch:0,line:currentLineNr+1},{ch:0,line:editor.lineCount()});
-					var func_matches= FUNCTION_REGEXP.exec(code);
-					if (func_matches || REACTJS_FUNCTION.test(code)) {
-						if (deepFunctionCheck(func_matches)) {
-							editor.setCursorPos(currentLineNr+1,0);
-							// delete /** and the next empty row
-							editor.document.replaceRange(
-								'',
-								{line:currentLineNr-1,ch:0},
-								{line:currentLineNr+1,ch:0}
-							);
-							handleDocBlock();
-						}
+					var func_matches= checkIfFunction(code);
+                    if (func_matches !== false || REACTJS_FUNCTION.test(code)) {
+                        if (deepFunctionCheck(func_matches)) {
+                            editor.setCursorPos(currentLineNr+1,0);
+                            // delete /** and the next empty row
+                            editor.document.replaceRange(
+                                '',
+                                {line:currentLineNr-1,ch:0},
+                                {line:currentLineNr+1,ch:0}
+                            );
+                            handleDocBlock();
+                        }
 					} else { // for reasonable comments by Peter Flynn
 						var nextLine = editor.document.getLine(currentLineNr+1);
 						var code 	 = editor.document.getRange({ch:0,line:currentLineNr+2},{ch:0,line:editor.lineCount()});
 						if (currentLine.trim() == '*' && nextLine.trim() == '*/') {
-							var func_matches= FUNCTION_REGEXP.exec(code);
-							if (func_matches || REACTJS_FUNCTION.test(code)) {
-								if (deepFunctionCheck(func_matches)) {
-									editor.setCursorPos(currentLineNr+2,0);
-									handleDocBlock();
-								}
+							var func_matches= checkIfFunction(code);
+							if (func_matches !== false || REACTJS_FUNCTION.test(code)) {
+                                if (deepFunctionCheck(func_matches)) {
+                                    editor.setCursorPos(currentLineNr+2,0);
+                                    handleDocBlock();
+                                }
 							}
 						}
 					}
@@ -708,6 +841,57 @@ define(function (require, exports, module) {
 		}
 		hintOpen = CodeHintManager.isOpen();
 	}
+    
+    /**
+     * Check if the curent line is really a function
+     * @param   {String}        line the maybe function line
+     * @returns {Array|Boolean} false if no function otherwise the a regexp array (FUNCTION_REGEXP)
+     */
+    function checkIfFunction(line) {
+        var result      = FUNCTION_REGEXP_EXTRA_MATCHES.exec(line); 
+        if (!result) {
+            result      = FUNCTION_REGEXP.exec(line); 
+            if (!result || result.length < 3 || result[2] === false) {
+                return false; 
+            }
+        } else {
+            if (result.length < 3 || result[2] === false) {
+                return false; 
+            }   
+        }
+        var param = result[2];
+        
+        var lastI = 0;
+        var openStringCh = "";
+        var lastStringCh = "";
+        var closedBrackets = 0;
+        for (var i = 0; i < param.length; i++) {
+            if ((param[i] == "'" || param[i] == '"') && openStringCh == "" && lastStringCh != "\\") {
+                openStringCh = param[i];   
+                lastStringCh = param[i]; 
+                continue;
+            }        
+            if (param[i] == "'" && openStringCh == "'" && lastStringCh != "\\") {
+                openStringCh = "";      
+            } else if (param[i] == '"' && openStringCh == '"' && lastStringCh != "\\") {
+                openStringCh = "";      
+            } else if (param[i] == "\\" && lastStringCh != "\\") {
+                lastStringCh = "\\";
+                continue;
+            } else if (param[i] == "\\" && lastStringCh == "\\") {
+                lastStringCh = "";
+                continue;
+            } else if (param[i] == ")" && openStringCh == "") {
+                closedBrackets++;
+                lastI = i+1;
+            }
+            lastStringCh = param[i]; 
+        }
+        if (closedBrackets != 0) {
+            return false;        
+        }
+        return result;
+    }
 
 	/**
 	 * Check if the given match is really a function and not an if or for loop
@@ -716,12 +900,11 @@ define(function (require, exports, module) {
 	 */
 	function deepFunctionCheck(matches) {
 		if (matches) {
-			var func_begin_matches    = FUNCTION_BEGINNING.exec(matches[0]);
+			var func_begin_matches    = DEEP_FUNCTION_CHECK.exec(matches[0]);
 			// check for things like if,for,foreach,while...
-			// func_begin_matches[1] is function or undefined
-			if (!func_begin_matches[2]) {
-				var noFuncs = ['if','for','foreach','while'];
-				if (noFuncs.indexOf(func_begin_matches[3]) >= 0) {
+			if (func_begin_matches) {
+				var noFuncs = PREDEFINED_FUNCTIONS;
+				if (noFuncs.indexOf(func_begin_matches[1]) >= 0) {
 					return false;	
 				}
 			}
@@ -783,7 +966,71 @@ define(function (require, exports, module) {
         return boundaryPosition;
     }
 
-
+    /**
+     * Get the the tabs for a tag
+     * @param   {String} tag the name of the tag
+     * @returns {Array}  the tabs like description,type 
+     */
+    function getTabsForATag(tag) {
+        var tagDef = getTagDef(tag);
+        if (!tagDef) {
+            return [];   
+        }
+        
+        var tabs = [];
+        var regex = /\[\[([a-z]*)\]\]/gi;
+        var counter = 0;
+        var tabName;
+        while ((tabName = regex.exec(tagDef)) !== null) {
+            tabs.push(tabName[1].toLowerCase());
+        }
+        return tabs;
+    }
+    
+    /**
+     * Generate a regex for a tag like /@param \[\[([\S])\]\]/ for @param [[Type]]
+     * @param   {String} tag name of the tag
+     * @returns {Array}  regex or false if there is no tag inside the definitions/ folder
+     */
+    function getRegexForATag(tag) {
+        var tagDef = getTagDef(tag);
+        if (!tagDef) {
+            return false;   
+        }
+        
+        var regex = tagDef.replace(/\[\[([a-zA-Z]*)\]\]/g,function(match,p1) {
+            if (p1 == 'Type') {
+                return '(\\S*)';   
+            } else {
+                return '([\\S\\s]*)';   
+            }
+        });
+        return RegExp(regex);
+    }
+    
+    /**
+     * Get the definition for a tag name using the definitions/ folder 
+     * @param   {String}         tag name of the tag
+     * @returns {String|Boolean} def or false if non exists
+     */
+    function getTagDef(tag) {
+        var editor  = EditorManager.getCurrentFullEditor();
+        langId  	= editor.getLanguageForSelection().getId();
+        
+        if (allDefinitions[langId] === undefined) {
+			definitions = allDefinitions.default;
+		} else {
+			definitions = allDefinitions[langId];
+		}
+		
+		var tags = definitions.tags;
+        if (!(tag in tags)) { 
+            return false;
+        }
+        
+        return tags[tag];
+    }
+    
 	// =========================================================================
     // Enter Handling
     // =========================================================================
@@ -828,20 +1075,49 @@ define(function (require, exports, module) {
 			// get the correct wrapper ({} for JS or '' for PHP)
 			var wrapper 		= PARAM_WRAPPERS[langId];
 			var paddingRegex 	= new RegExp('^(\\s+)\\* @(param|returns?)\\s+'+wrapper[0]+'.+'+wrapper[1]+'\\s+([^ ]+\\s+)');
+			var paddingRegexElse= new RegExp('^(\\s+)\\* @([a-zA-Z]*)\\s+([^ ]+\\s*)');
 			var match 			= paddingRegex.exec(lastLine);
-			var length;
-			// for the second enter there is no * @param or @returns
-			if (!match) {
+			var length          = false;
+            if (!match) {
+                match = paddingRegexElse.exec(lastLine);  
+                // get the number of tabs for the specified jsDoc tag
+                if (match) {
+                    /* var tabs = getTabsForATag(match[2]);
+                    var nrOfTabs = tabs.length;
+                    if (nrOfTabs === 1) {
+                        paddingRegexElse= new RegExp('^(\\s+)\\* @[a-zA-Z]*\\s+([^ ]+\\s*)');
+                    } else {
+                        paddingRegexElse= new RegExp('^(\\s+)\\* @[a-zA-Z]*\\s+([^ ]+\\s+){'+(nrOfTabs-1)+'}([^ ]+\\s*)');
+                    }
+                    match 			= paddingRegexElse.exec(lastLine);
+                    console.log('tabs: ',tabs);*/
+                    
+                    /// current best version
+                    var tagRegex = getRegexForATag(match[2]);
+                    if (tagRegex) {
+                        var tagTabsMatches = tagRegex.exec(lastLine);
+                        length = lastLine.length - tagTabsMatches[tagTabsMatches.length-1].length-1;                    
+                    } else {
+                        match = false;
+                    }
+                }
+            }
+            
+//            console.log('match: ',match);
+			
+			if (match) {
+				if (length === false) {
+                    length 		 = match[0].length-match[1].length;
+                    // there is no title for @returns
+                    if (match.length > 3 && match[2].indexOf('return') == 0) {
+                        length -= match[3].length;
+                    }
+                }
+			} else { // for the second enter there is no * @param or @returns
 				paddingRegex = new RegExp('^(\\s+)\\*\\s+');
 				match 		 = paddingRegex.exec(lastLine);
 				if (match) {
 					length 	 = match[0].length-match[1].length;
-				}
-			} else {
-				length 		 = match[0].length-match[1].length;
-				// there is no title for @returns
-				if (match[2].indexOf('return') == 0) {
-					length -= match[3].length;
 				}
 			}
 			if (match) {
@@ -919,24 +1195,32 @@ define(function (require, exports, module) {
 	 * @param {Object} editor        brackets editor
 	 * @param {Object} docBlockPos   docBlock position (.start,.end)
 	 * @param {Object} tags          current doc tags
-	 * @param {Object} maxPaddingObj maximum padding (.title,.type)
+	 * @param {Array}  maxPaddingArr maximum padding see {@link getMaxPadding}
 	 */
-	function updatePadding(editor,docBlockPos,tags,maxPaddingObj) {
+	function updatePadding(editor,docBlockPos,tags,maxPaddingArr) {
 		var document = editor.document;
 		var maxPadding = [];
 		var lastMatch = false;
-		maxPadding[0] = maxPaddingObj.type + PARAM_WRAPPERS[langId][0].length + PARAM_WRAPPERS[langId][1].length+1; // one space
-		maxPadding[1] = maxPaddingObj.title + 1; // one space
+		maxPadding[0] = maxPaddingArr[1] + PARAM_WRAPPERS[langId][0].length + PARAM_WRAPPERS[langId][1].length+1; // one space
+		maxPadding[1] = maxPaddingArr[2] + 1; // one space
 		for (var i = docBlockPos.start; i <= docBlockPos.end; i++) {
 			var match;
 			var line         = document.getLine(i);
 			var paramMatch   = DOCBLOCK_PAR_LINE.exec(line);
 			var returnMatch  = DOCBLOCK_RET_LINE.exec(line);
+            var atMatch      = DOCBLOCK_AT_LINE.exec(line);
 			var nrOfPaddings = 2; // for params (for return 1 (no title padding)
 
 			var index             = false;
 			var currentPadding    = false;
 			var currentMaxPadding = false;
+            if ((!paramMatch && !returnMatch) && (atMatch || lastMatch == '@')) {
+                // Trello todo: better padding for other @ lines [55bdeafc5ac7da95998cae75]
+                lastMatch = '@';
+                continue; // don't change the padding for '@' lines at the moment    
+            }
+            
+            
 			if ((paramMatch || returnMatch || lastMatch) && !DOCBLOCK_END.test(line)) {
 				if (paramMatch) {
 					match = paramMatch;
@@ -951,14 +1235,14 @@ define(function (require, exports, module) {
 					index 		 = match[0].length;
 
 					currentPadding    = match[3].length;
-					currentMaxPadding = 2+lastMatch.length+1+maxPadding[0]+maxPadding[1]; // 2= ' @' 1 => one space before type
+                    currentMaxPadding = 2+lastMatch.length+1+maxPadding[0]+maxPadding[1]; // 2= ' @' 1 => one space before type
 				}
 				for (var m = 0; m < nrOfPaddings; m++) {
-					if (!index) {
-						if (m == 0)
-							index = match[1].length + match[2].length;
-						else
-							index = match[1].length + maxPadding[0] + match[3].length;
+					if (!index) {                    
+                      if (m == 0)
+                        index = match[1].length + match[2].length;
+                      else
+                        index = match[1].length + maxPadding[0] + match[3].length;
 					}
 					if (!currentPadding) {
 						currentPadding = match[m+2].length;
@@ -1100,6 +1384,8 @@ define(function (require, exports, module) {
 		
 		var paramIndex;
 		var paramTypes = [];
+        var throws = [];
+        var exTypes = [];
 		
 		if (allDefinitions[langId] === undefined) {
 			definitions = allDefinitions.default;
@@ -1143,6 +1429,21 @@ define(function (require, exports, module) {
 
 
 			switch (char) {
+                // throw ne        
+                case 't':    
+                    if (delimiter == "" && /\sthrow new /.test(code.substr(i-1,11))) {
+                        var matches = /\s*?([\s\S]*?)(\([\s\S]*?\))?;/.exec(code.substr(i+10));
+                        if (matches) {
+                            var exType = matches[1].trim();
+                            if (exTypes.indexOf(exType) == -1) {
+                                throws.push({extype: exType});
+                                exTypes.push(exType);
+                            }
+                        }                        
+                    }
+                    break;
+                    
+                // returns?    
 				case 'r':
 					if (delimiter == "" && /\sreturn[\[{ ]/.test(code.substr(i-1,8))) {
 						returns.bool = true;
@@ -1189,11 +1490,11 @@ define(function (require, exports, module) {
 						var lookahead = code.charAt(++i);
 						switch (lookahead) {
 							case '/': // comment
-								var endComment = code.regexIndexOf(/\n/,i);
+								var endComment = regexIndexOf(code,/\n/,i);
 								i = endComment > i ? endComment+1 : i;
 								break;
 							case '*': // start of comment (/*)
-								var endComment = code.regexIndexOf(/\*\//,i);
+								var endComment = regexIndexOf(code,/\*\//,i);
 								i = endComment > i ? endComment+2 : i;
 								break;
 							default:
@@ -1226,7 +1527,8 @@ define(function (require, exports, module) {
 							return {
 								code:code.substr(0,i+1),
 								returns: returns,
-								paramTypes: paramTypes
+								paramTypes: paramTypes,
+                                throws: throws
 							}
 						}
 					}
@@ -1235,7 +1537,47 @@ define(function (require, exports, module) {
 		return false;
 	}
 
-	/**
+    /**
+     * split the input into params (not possible to split by ',' directly)
+     * @param   {String} input 
+     * @returns {Array}  splitted input
+     */
+    function specialSplitComma(input) {
+        var parameters = [];
+        var lastI = 0;
+        var openStringCh = "";
+        var lastStringCh = "";
+        if (!input) {
+            return [];   
+        }
+        
+        for(var i = 0; i < input.length; i++) {
+            if ((input[i] == "'" || input[i] == '"') && openStringCh == "" && lastStringCh != "\\") {
+                openStringCh = input[i];   
+                lastStringCh = input[i]; 
+                continue;
+            }        
+            if (input[i] == "'" && openStringCh == "'" && lastStringCh != "\\") {
+                openStringCh = "";      
+            } else if (input[i] == '"' && openStringCh == '"' && lastStringCh != "\\") {
+                openStringCh = "";      
+            } else if (input[i] == "\\" && lastStringCh != "\\") {
+                lastStringCh = "\\";
+                continue;
+            } else if (input[i] == "\\" && lastStringCh == "\\") {
+                lastStringCh = "";
+                continue;
+            } else if (input[i] == "," && openStringCh == "") {
+                parameters.push(input.substring(lastI,i));
+                lastI = i+1;
+            }
+            lastStringCh = input[i]; 
+        } 
+        parameters.push(input.substring(lastI));   
+        return parameters;   
+    }
+    
+    /**
 	 * Check if params are optional and have default values
 	 * @param   {String} code   code of the function
 	 * @param   {Object} params all parameters of the function
@@ -1244,7 +1586,7 @@ define(function (require, exports, module) {
 	function checkParamsOptional(code,params) {
 		if (langId === "php") {
 			code = code.substring(code.indexOf('(')+1,code.indexOf(')'));
-			var parameters = code.split(',');
+            var parameters = specialSplitComma(code);
 			for (var i = 0; i < parameters.length; i++) {
 				params[i].title = params[i].name;
 				var paramParts = params[i].name.split('=');
@@ -1289,7 +1631,7 @@ define(function (require, exports, module) {
 				}
 				if ((match[1] == match[2]) && (match[1]  == match[3])) {
 					var variable = match[1];
-					var paramIndex = params.keyIndexOf('name',variable);
+					var paramIndex = keyIndexOf(params,'name',variable);
 					if (paramIndex >= 0) {
 						params[paramIndex].optional = true;
 						params[paramIndex].default = true;
@@ -1304,7 +1646,7 @@ define(function (require, exports, module) {
 				// variable == variable
 				if (match[1] == match[2]) {
 					var variable = match[1];
-					var paramIndex = params.keyIndexOf('name',variable);
+					var paramIndex = keyIndexOf(params,'name',variable);
 					if (paramIndex >= 0) {
 						params[paramIndex].optional = true;
 						params[paramIndex].default = match[3];
@@ -1321,7 +1663,7 @@ define(function (require, exports, module) {
 				// variable == variable
 				if (match[1] == match[2] && (match[1] == match[4] || match[1] == match[5])) {
 					var variable = match[1];
-					var paramIndex = params.keyIndexOf('name',variable);
+					var paramIndex = keyIndexOf(params,'name',variable);
 					if (paramIndex >= 0) {
 						params[paramIndex].optional = true;
 						if (match[3] == '!') {
@@ -1341,8 +1683,8 @@ define(function (require, exports, module) {
 	}
 
 
-	String.prototype.regexIndexOf = function(regex, startpos) {
-		var indexOf = this.substring(startpos || 0).search(regex);
+	function regexIndexOf (string, regex, startpos) {
+		var indexOf = string.substring(startpos || 0).search(regex);
 		return (indexOf >= 0) ? (indexOf + (startpos || 0)) : indexOf;
 	}
 
@@ -1524,12 +1866,12 @@ define(function (require, exports, module) {
 
 	/**
 	 * Find the position of an needle in an array of objects for a special key
+	 * @param   {Array}  array  the array
 	 * @param   {String} key    key which should be checked against the needle
 	 * @param   {String} needle string that should be array[i][key]
 	 * @returns {Number} return the positon i if needle was found otherwise -1
 	 */
-	Array.prototype.keyIndexOf = function(key,needle) {
-		var array = this;
+	function keyIndexOf(array,key,needle) {
 		for (var i = 0; i < array.length; i++) {
 			if (array[i][key] == needle) {
 				return i;
@@ -1540,13 +1882,14 @@ define(function (require, exports, module) {
 	
 	/**
 	 * Return the given string*times
-	 * @param   {Number} times nr of repetition
+	 * @param   {String} string the string that should be used
+	 * @param   {Number} times  nr of repetition
 	 * @returns {String} string,string,...,*times
 	 */
-	String.prototype.times = function(times) {
-		var result = this;
+	function times(string,times) {
+		var result = string;
 		for (var i = 1; i < times; i++) {
-			result += this;	
+			result += string;	
 		}
 		return result;
 	}

@@ -87,9 +87,9 @@ define(function (require, exports, module) {
 
     function show() {
         $.get(modulePath + 'package.json', function (data) {
-            if (typeof data === 'string') {
+        	if (typeof data === 'string') {
               data = JSON.parse(data);            
-            }
+			}
             moduleVersion = data.version;
 
             if (Prefs.get("whatsnew") !== moduleVersion) {
