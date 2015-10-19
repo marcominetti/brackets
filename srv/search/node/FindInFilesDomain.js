@@ -27,11 +27,12 @@ maxerr: 50, node: true */
 
 (function () {
     "use strict";
-    
-    var fs = require("fs"),
+
+    var fs = require('fs'),
         projectCache = [],
         files,
         _domainManager,
+        _srv,
         MAX_FILE_SIZE_TO_INDEX = 16777216, //16MB
         MAX_DISPLAY_LENGTH = 200,
         MAX_TOTAL_RESULTS = 100000, // only 100,000 search results are supported
@@ -196,7 +197,7 @@ maxerr: 50, node: true */
      */
     function getFilesizeInBytes(fileName) {
         try {
-            var stats = fs.statSync(fileName);
+            var stats = fs.statSync(_srv.fileSystem.resolvePathSync(fileName,_srv));
             return stats.size || 0;
         } catch (ex) {
             console.log(ex);
@@ -216,7 +217,7 @@ maxerr: 50, node: true */
         }
         try {
             if (getFilesizeInBytes(filePath) <= MAX_FILE_SIZE_TO_INDEX) {
-                projectCache[filePath] = fs.readFileSync(filePath, 'utf8');
+                projectCache[filePath] = fs.readFileSync(_srv.fileSystem.resolvePathSync(filePath,_srv), 'utf8');
             } else {
                 projectCache[filePath] = "";
             }
@@ -575,6 +576,7 @@ maxerr: 50, node: true */
             domainManager.registerDomain("FindInFiles", {major: 0, minor: 1});
         }
         _domainManager = domainManager;
+        _srv = domainManager.srv;
         domainManager.registerCommand(
             "FindInFiles",       // domain name
             "doSearch",    // command name

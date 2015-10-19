@@ -30,7 +30,9 @@
         "temp": "~0.6.0",
         "connect": "~2.9.0",
         "findup": "latest",
-				"jscs": "latest"
+		"jscs": "latest",
+		"eslint": "latest",
+		"babel-eslint": "latest"
     },
     "devDependencies": {
         "grunt": "0.4.5",
