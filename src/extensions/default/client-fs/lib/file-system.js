@@ -8,6 +8,9 @@ define(function (require, exports) {
         io                  = require("thirdparty/socket.io.js"),
         PreferencesManager  = null;
 
+    var skipEnvironmentFolderNames = [ "node_modules" /*, "bin", "build", "cache", "data", "dist", "log", "tmp"*/ ];
+
+
     /**
      * Callback to notify FileSystem of watcher changes
      * @type {?function(string, FileSystemStats=)}
@@ -152,9 +155,9 @@ define(function (require, exports) {
               } catch(e) {}
             }
 
-            if (PreferencesManager != null && PreferencesManager.get("debug.skipNodeModulesFolderList") === true) {
+            if (PreferencesManager != null && PreferencesManager.get("debug.skipEnvironmentFolders") === true) {
                 res.contents = res.contents.filter(function (val, idx) {
-                    if (val === 'node_modules'){
+                    if (skipEnvironmentFolderNames.indexOf(val) !== -1){
                         return false;
                     }
                     return true;

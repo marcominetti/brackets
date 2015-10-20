@@ -82,7 +82,7 @@ define(function (require, exports, module) {
         DEBUG_SHOW_ERRORS_IN_STATUS_BAR       = "debug.showErrorsInStatusBar",
         DEBUG_OPEN_BRACKETS_SOURCE            = "debug.openBracketsSource",
         DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW  = "debug.openPrefsInSplitView",
-        DEBUG_SKIP_ENVIRONMENT_FOLDER        = "debug.skipEnvironmentFolderList";
+        DEBUG_SKIP_ENVIRONMENT_FOLDERS        = "debug.skipEnvironmentFolders";
 
     // define a preference to turn off opening preferences in split-view.
     var prefs = PreferencesManager.getExtensionPrefs("preferencesView");
@@ -98,7 +98,7 @@ define(function (require, exports, module) {
         description: Strings.DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR
     });
 
-    PreferencesManager.definePreference(DEBUG_SKIP_ENVIRONMENT_FOLDER, "boolean", true, {
+    PreferencesManager.definePreference(DEBUG_SKIP_ENVIRONMENT_FOLDERS, "boolean", true, {
         description: Strings.DESCRIPTION_SKIP_NODE_MODULES_FOLDER
     });
 
@@ -261,7 +261,7 @@ define(function (require, exports, module) {
 
     function toggleNodeModulesFolderList(bool){
         var val,
-            oldPref = !!PreferencesManager.get(DEBUG_SKIP_ENVIRONMENT_FOLDER);
+            oldPref = !!PreferencesManager.get(DEBUG_SKIP_ENVIRONMENT_FOLDERS);
 
         if (bool === undefined) {
             val = !oldPref;
@@ -272,9 +272,9 @@ define(function (require, exports, module) {
         ProjectManager.refreshFileTree();
 
         // update menu
-        CommandManager.get(DEBUG_SKIP_ENVIRONMENT_FOLDER).setChecked(val);
+        CommandManager.get(DEBUG_SKIP_ENVIRONMENT_FOLDERS).setChecked(val);
         if (val !== oldPref) {
-            PreferencesManager.set(DEBUG_SKIP_ENVIRONMENT_FOLDER, val);
+            PreferencesManager.set(DEBUG_SKIP_ENVIRONMENT_FOLDERS, val);
         }
     }
     
@@ -800,7 +800,7 @@ define(function (require, exports, module) {
 
     CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,           DEBUG_SWITCH_LANGUAGE,           handleSwitchLanguage);
     CommandManager.register(Strings.CMD_SHOW_ERRORS_IN_STATUS_BAR, DEBUG_SHOW_ERRORS_IN_STATUS_BAR, toggleErrorNotification);
-    CommandManager.register(Strings.DEBUG_SKIP_ENVIRONMENT_FOLDER,  DEBUG_SKIP_ENVIRONMENT_FOLDER,  toggleNodeModulesFolderList);
+    CommandManager.register(Strings.DEBUG_SKIP_ENVIRONMENT_FOLDERS,  DEBUG_SKIP_ENVIRONMENT_FOLDERS,  toggleNodeModulesFolderList);
 
     // Node-related Commands
     //CommandManager.register(Strings.CMD_ENABLE_NODE_DEBUGGER, DEBUG_ENABLE_NODE_DEBUGGER,   NodeDebugUtils.enableDebugger);
@@ -816,10 +816,10 @@ define(function (require, exports, module) {
         toggleErrorNotification(PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR));
     });
 
-    toggleNodeModulesFolderList(PreferencesManager.get(DEBUG_SKIP_ENVIRONMENT_FOLDER));
+    toggleNodeModulesFolderList(PreferencesManager.get(DEBUG_SKIP_ENVIRONMENT_FOLDERS));
 
-    PreferencesManager.on("change", DEBUG_SKIP_ENVIRONMENT_FOLDER, function () {
-      toggleNodeModulesFolderList(PreferencesManager.get(DEBUG_SKIP_ENVIRONMENT_FOLDER));
+    PreferencesManager.on("change", DEBUG_SKIP_ENVIRONMENT_FOLDERS, function () {
+      toggleNodeModulesFolderList(PreferencesManager.get(DEBUG_SKIP_ENVIRONMENT_FOLDERS));
     });
     
     /*
@@ -842,7 +842,7 @@ define(function (require, exports, module) {
     //menu.addMenuItem(DEBUG_RESTART_NODE);
     menu.addMenuItem(DEBUG_SHOW_ERRORS_IN_STATUS_BAR);
     menu.addMenuItem(DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW); // this command will enable defaultPreferences and brackets preferences to be open side by side in split view.
-    menu.addMenuItem(DEBUG_SKIP_ENVIRONMENT_FOLDER);
+    menu.addMenuItem(DEBUG_SKIP_ENVIRONMENT_FOLDERS);
     menu.addMenuItem(Commands.FILE_OPEN_KEYMAP);      // this command is defined in core, but exposed only in Debug menu for now
 
     // exposed for convenience, but not official API

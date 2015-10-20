@@ -599,7 +599,7 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Log Node State to Console",
     "CMD_RESTART_NODE"                          : "Restart Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
-    "DEBUG_SKIP_ENVIRONMENT_FOLDER"            : "Hide Environment Folders",
+    "DEBUG_SKIP_ENVIRONMENT_FOLDERS"            : "Hide Environment Folders",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Open {APP_NAME} Source",
 
     "CREATING_LAUNCH_SCRIPT_TITLE"              : "{APP_NAME} Command Line Shortcut",
