@@ -8,7 +8,7 @@ define(function (require, exports) {
         io                  = require("thirdparty/socket.io.js"),
         PreferencesManager  = null;
 
-    var skipEnvironmentFolderNames = [ "node_modules" /*, "bin", "build", "cache", "data", "dist", "log", "tmp"*/ ];
+    var skipEnvironmentFolderNames = [ "node_modules" , "bin", "build", "cache", "data", "dist", "log", "tmp" ];
 
 
     /**
