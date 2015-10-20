@@ -7,7 +7,8 @@
 		domainName			= 'globexdesigns.brackets-jscs',
 		configFiles			= ['.jscsrc', '.jscs.json'],
 		Checker				= require('jscs'),
-		jscsConfig			= require('jscs/lib/cli-config');
+		jscsConfig			= require('jscs/lib/cli-config'),
+		srv;
 
 	/**
 	 * Does a recursive scan of the directories at and above the given
@@ -118,11 +119,16 @@
 	 * @returns {void}
 	 */
 	var lintFile = function (fullPath, callback) {
-		return _prepareJSCS(fullPath, function (JSCS, err) {
+		var realfullPath = srv.fileSystem.resolvePathSync(fullPath,srv);
+		return _prepareJSCS(realfullPath, function (JSCS, err) {
 			if (err) return callback(err);
-
-			JSCS.checkPath(fullPath).then(function (response) {
-				callback(response[0]._errorList);
+			
+			JSCS.checkPath(realfullPath).then(function (response) {
+				var res = response[0]._errorList.map(function(item){
+					item.filename = fullPath;
+					return item;
+				});
+				callback(res);
 			}).catch(function (err) {
 				callback(err);
 			});
@@ -141,6 +147,7 @@
 	 * @returns {void}
 	 */
 	var fixFile = function (code, fullPath, callback) {
+		fullPath = srv.fileSystem.resolvePathSync(fullPath,srv);
 		return _prepareJSCS(fullPath, function (JSCS, err) {
 			if (err) throw new Error(err);
 			var result = JSCS.fixString(code, fullPath);
@@ -155,6 +162,8 @@
 				minor: 1
 			});
 		}
+
+		srv = domainManager.srv;
 
 		// Registered Command: lintFile
 		domainManager.registerCommand(

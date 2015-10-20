@@ -55,7 +55,9 @@
         "findup": "latest",
         "jscs": "latest",
         "eslint": "latest",
-        "babel-eslint": "latest"
+        "babel-eslint": "latest",
+        "eslint-plugin-react": "latest",
+        "enable-global-packages": "latest"
     },
     "devDependencies": {
         "grunt": "0.4.5",

@@ -47,6 +47,10 @@ define(function (require, exports) {
         callback("Not supported.");
     };
 
+    exports.getElapsedMilliseconds = function () {
+        return Date.now();
+    };
+
     var Fn = Function, global = (new Fn("return this"))();
     if (!global.Mustache.compile) {
         global.Mustache.compile = function (template) {

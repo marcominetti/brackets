@@ -96,7 +96,7 @@ define(function (require, exports, module) {
 		var deferred = new $.Deferred();
 
 		nodeDomain.exec('lintFile', fullPath)
-			.then(function () {
+			.then(function (results) {
 				return deferred.reject();
 			}, function (err) {
 				if (typeof err === 'string') {
