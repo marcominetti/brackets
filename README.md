@@ -4,6 +4,24 @@ The project is a fork of [adobe/brackets](https://github.com/adobe/brackets) wit
 
 The goal is to provide an up-to-date Adobe Brackets running instance for single project servers with optimizations (upcoming).
 
+The distribution includes several extensions:
+
+  * [Reasonable Comments](https://github.com/peterflynn/reasonable-comments)
+  * [Proper Indent](https://github.com/busykai/brackets-indent-right)
+  * [Extended HTML5 Code Hints](https://github.com/coliff/Brackets-HTML5CodeHints)
+  * [Minimap](https://github.com/zorgzerg/brackets-minimap)
+  * [JSCS](https://github.com/globexdesigns/brackets-jscs)
+  * [Darcula Theme](https://github.com/AlbertoDorado/darcula-for-brackets)
+  * [Indentator](https://github.com/ahuth/brackets-indentator)
+  * [Go to Matching Bracket](https://github.com/davidwaterston/goto-matching-bracket)
+  * [ECMAScript 6/7 Highlight](https://github.com/marcominetti/brackets-esnext-highlight)
+  * [File and Folder Duplicate](https://github.com/torinpascal/brackets-duplicate-extension)
+  * [Copy as HTML](https://github.com/peterflynn/copy-as-html)
+  * [Print Margin](https://github.com/Hirse/brackets-print-margin)
+  * [Additional Right Click Menu](https://github.com/caphodel/brackets-additional-right-click-menu)
+  * [Markdown Preview](https://github.com/gruehle/MarkdownPreview)
+  * [JSDoc FuncDocr](https://github.com/wikunia/brackets-funcdocr)
+  * [Double Click Matching Bracket](https://github.com/pessotti/brackets-doubleclick-match-brackets)
 
 # Usage
 
