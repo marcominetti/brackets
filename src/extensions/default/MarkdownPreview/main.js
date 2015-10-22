@@ -67,9 +67,9 @@ define(function (require, exports, module) {
 
     // Prefs
     var _prefs = PreferencesManager.getExtensionPrefs("markdown-preview");
-    _prefs.definePreference("useGFM", "boolean", false);
+    _prefs.definePreference("useGFM", "boolean", true);
     _prefs.definePreference("theme", "string", "clean");
-    _prefs.definePreference("syncScroll", "boolean", true);
+    _prefs.definePreference("syncScroll", "boolean", false);
 
     // (based on code in brackets.js)
     function _handleLinkClick(e) {
@@ -139,7 +139,7 @@ define(function (require, exports, module) {
                 $iframe[0].contentDocument.body.innerHTML = bodyText;
             } else {
                 // Make <base> tag for relative URLS
-                var baseUrl = window.location.protocol + "//" + FileUtils.getDirectoryPath(doc.file.fullPath);
+                var baseUrl = ""; //window.location.protocol + "//" + FileUtils.getDirectoryPath(doc.file.fullPath);
 
                 // Assemble the HTML source
                 var htmlSource = _.template(previewHTML)({
