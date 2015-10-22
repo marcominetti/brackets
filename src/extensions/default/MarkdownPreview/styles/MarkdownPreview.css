@@ -9,7 +9,6 @@
 
 #panel-markdown-preview {
     position: relative;
-    background-color: #fff;
 }
 
 #panel-markdown-preview-frame {
@@ -31,7 +30,6 @@
     transition-duration: .2s;
     -webkit-filter: drop-shadow(0 0 2px #fff);
     filter: drop-shadow(0 0 1px #fff);
-    display: none;
 }
 
 #panel-markdown-preview:hover #markdown-settings-toggle {
